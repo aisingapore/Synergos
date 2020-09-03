@@ -5,7 +5,7 @@
 ####################
 
 # Generic/Built-in
-
+import logging
 
 # Libs
 
@@ -17,6 +17,13 @@
 ##################
 
 
-####################################
-# Project task Class - ProjectTask #
-####################################
+
+###################################
+# Response Parser Class - Results #
+###################################
+
+class Results:
+    """ Parser class for converting responses into a resuable object """
+    def __init__(self, response: dict):
+        for attribute, value in response.items():
+            setattr(self, attribute, value)

@@ -102,6 +102,11 @@ class ModelTask(BaseTask):
 
         Args:
             project_id (str): Identifier of project
+            expt_id (str): Identifier of experiment run is under
+            run_id (str): Identifier of run
+            dockerised (bool): Toggles if orchestrations are dockerised
+            log_msgs (bool): Toggles if computation operations should be logged
+            verbose (bool): Toggles verbosity of computation logging
             **kwargs
         Returns:
             
@@ -134,6 +139,8 @@ class ModelTask(BaseTask):
 
         Args:
             project_id (str): Identifier of project
+            expt_id (str): Identifier of experiment run is under
+            run_id (str): Identifier of run
         Returns:
 
         """
@@ -248,7 +255,7 @@ if __name__ == "__main__":
         'l1_lambda': 0.001, 
         'l2_lambda': 0.001,
         'optimizer': "SGD", 
-        'criterion': "BCELoss", 
+        'criterion': "NLLLoss", 
         'lr_scheduler': "CyclicLR", 
         'delta': 0.001,
         'patience': 10,
@@ -272,7 +279,8 @@ if __name__ == "__main__":
         rounds=2, 
         epochs=1,
         base_lr=0.0005,
-        max_lr=0.005
+        max_lr=0.005,
+        criterion="NLLLoss"
     ) 
 
     runs.create( # Use default parameter set on model 2
@@ -282,7 +290,8 @@ if __name__ == "__main__":
         rounds=2, 
         epochs=1,
         base_lr=0.0005,
-        max_lr=0.005
+        max_lr=0.005,
+        criterion="NLLLoss"
     ) 
 
     # Create reference participants
@@ -336,11 +345,11 @@ if __name__ == "__main__":
         evaluate=[["iid_1"]]
     )
 
-    print(tags.create(
+    tags.create(
         project_id=project_id,
         participant_id=participant_id_2,
         train=[["non_iid_2"]]
-    ))
+    )
 
     # Create reference alignments
     alignments = AlignmentTask(address)
