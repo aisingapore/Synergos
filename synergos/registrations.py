@@ -36,7 +36,7 @@ class RegistrationTask(BaseTask):
 
     def __init__(self, address: str):
         super().__init__(
-            _type="participant", 
+            _type="registration", 
             address=address,
             endpoints=REGISTRATION_ENDPOINTS
         )
