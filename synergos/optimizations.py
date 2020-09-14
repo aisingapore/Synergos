@@ -325,8 +325,8 @@ if __name__ == "__main__":
         project_id=project_id,
         participant_id=participant_id_1,
         train=[
-            # ["non_iid_1"], 
-            # ["edge_test_missing_coecerable_vals"],
+            ["non_iid_1"], 
+            ["edge_test_missing_coecerable_vals"],
             ["edge_test_misalign"],
             ["edge_test_na_slices"]
         ],
@@ -344,49 +344,51 @@ if __name__ == "__main__":
     alignments.create(project_id=project_id)
 
     # Create reference model(s)
-    # models = ModelTask(address)
-    # models.create( # All combinations under a project
-    #     project_id=project_id
-    # )
-
-    optimizations = OptimizationTask(address)
-
-    # Test optimization creation
-    optim_parameters = {
-        'search_space': {
-            "batch_size": {"_type":"choice", "_value": [64, 128]},
-            "rounds":{"_type":"choice","_value":[3, 4]},
-            "lr":{"_type":"choice","_value":[0.0001, 0.1]},
-            "criterion":{"_type":"choice","_value":["NLLLoss"]},
-            "mu":{"_type":"uniform","_value":[0.0, 1.0]},
-            "base_lr":{"_type":"choice","_value":[0.00005]},
-            "max_lr":{"_type":"choice","_value":[0.2]}
-        },
-        'tuner': "TPE",
-        'metric': "accuracy",
-        'optimize_mode': "maximize",
-        'trial_concurrency': 1,
-        'max_exec_duration': "1h",
-        'max_trial_num': 10,
-        'is_remote': True,
-        'use_annotation': True,
-        'dockerised': True,
-        'verbose': True,
-        'log_msgs': True
-    }
-    create_response = optimizations.create(
+    models = ModelTask(address)
+    models.create( # All combinations under a project
         project_id=project_id,
-        expt_id=expt_id_1,
-        **optim_parameters
+        expt_id=expt_id_2,
+        run_id=run_id_2
     )
-    print(f"Optimization: Create response: {create_response}")
 
-    # Test optimization creation
-    read_response = optimizations.read(
-        project_id=project_id, 
-        expt_id=expt_id_1
-    )
-    print(f"Optimization: Read response: {read_response}")
+    # optimizations = OptimizationTask(address)
+
+    # # Test optimization creation
+    # optim_parameters = {
+    #     'search_space': {
+    #         "batch_size": {"_type":"choice", "_value": [64, 128]},
+    #         "rounds":{"_type":"choice","_value":[3, 4]},
+    #         "lr":{"_type":"choice","_value":[0.0001, 0.1]},
+    #         "criterion":{"_type":"choice","_value":["NLLLoss"]},
+    #         "mu":{"_type":"uniform","_value":[0.0, 1.0]},
+    #         "base_lr":{"_type":"choice","_value":[0.00005]},
+    #         "max_lr":{"_type":"choice","_value":[0.2]}
+    #     },
+    #     'tuner': "TPE",
+    #     'metric': "accuracy",
+    #     'optimize_mode': "maximize",
+    #     'trial_concurrency': 1,
+    #     'max_exec_duration': "1h",
+    #     'max_trial_num': 10,
+    #     'is_remote': True,
+    #     'use_annotation': True,
+    #     'dockerised': True,
+    #     'verbose': True,
+    #     'log_msgs': True
+    # }
+    # create_response = optimizations.create(
+    #     project_id=project_id,
+    #     expt_id=expt_id_1,
+    #     **optim_parameters
+    # )
+    # print(f"Optimization: Create response: {create_response}")
+
+    # # Test optimization creation
+    # read_response = optimizations.read(
+    #     project_id=project_id, 
+    #     expt_id=expt_id_1
+    # )
+    # print(f"Optimization: Read response: {read_response}")
 
     # Clean up
     projects.delete(project_id=project_id)

@@ -83,7 +83,7 @@ driver.runs.create(
     epochs=1,
     base_lr=0.0005,
     max_lr=0.005,
-    criterion="BCELoss"
+    criterion="NLLLoss"
 )
 
 
