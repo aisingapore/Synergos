@@ -58,17 +58,27 @@ class ProjectTask(BaseTask):
     # Core functions #
     ##################
 
-    def create(self, project_id: str, incentives: dict, **kwargs):
+    def create(self, project_id: str, action: str, incentives: dict, **kwargs):
         """ Registers a project in the federated grid
 
         Args:
             project_id (str): Identifier of project
+            action (str): Type of ML operation to be executed. Supported options
+                are as follows:
+                1) 'regress': Orchestrates FL grid to perform regression
+                2) 'classify': Orchestrates FL grid to perform classification
+                3) 'cluster': TBA
+                4) 'associate': TBA
             incentives (dict): Tier list for assigning contributions
             **kwargs
         Returns:
             
         """
-        parameters = {'project_id': project_id, 'incentives': incentives}
+        parameters = {
+            'project_id': project_id, 
+            'action': action,
+            'incentives': incentives
+        }
 
         return self._execute_operation(
             operation="post",
@@ -152,6 +162,7 @@ if __name__ == "__main__":
     # Test project creation
     create_response_1 = projects.create(
         project_id=project_id_1,
+        action="classify",
         incentives={
             'tier_1': [],
             'tier_2': [],
@@ -162,6 +173,7 @@ if __name__ == "__main__":
 
     create_response_2 = projects.create(
         project_id=project_id_2,
+        action='regress',
         incentives={
             'tier_1': [],
             'tier_2': [],

@@ -155,12 +155,15 @@ if __name__ == "__main__":
     from .tags import TagTask
     from .alignments import AlignmentTask
     from .models import ModelTask
+    from .validations import ValidationTask
+    from .predictions import PredictionTask
     
     # Create reference project
     projects = ProjectTask(address)
     project_id = "test_project"
     projects.create(
         project_id=project_id, 
+        action="classify",
         incentives={
             'tier_1': [],
             'tier_2': []
@@ -243,7 +246,7 @@ if __name__ == "__main__":
         'l1_lambda': 0.001, 
         'l2_lambda': 0.001,
         'optimizer': "SGD", 
-        'criterion': "NLLLoss", 
+        'criterion': "MSELoss", 
         'lr_scheduler': "CyclicLR", 
         'delta': 0.001,
         'patience': 10,
@@ -347,8 +350,8 @@ if __name__ == "__main__":
     models = ModelTask(address)
     models.create( # All combinations under a project
         project_id=project_id,
-        expt_id=expt_id_2,
-        run_id=run_id_2
+        expt_id=expt_id_1,
+        # run_id=run_id_1
     )
 
     # optimizations = OptimizationTask(address)
@@ -389,6 +392,26 @@ if __name__ == "__main__":
     #     expt_id=expt_id_1
     # )
     # print(f"Optimization: Read response: {read_response}")
+
+    # Perform validation(s)
+    validations = ValidationTask(address)
+    valid_resp = validations.create(
+        project_id=project_id,
+        expt_id=expt_id_1,
+        # run_id=run_id_1
+    )
+    print(f"Validation response: {valid_resp}")
+
+    # Perform prediction(s)
+    predictions = PredictionTask(address)
+    pred_resp = predictions.create(
+        tags={"test_project": [["iid_1"]]},
+        participant_id=participant_id_1,
+        project_id=project_id,
+        expt_id=expt_id_1,
+        # run_id=run_id_1
+    )
+    print(f"Prediction response: {pred_resp}")
 
     # Clean up
     projects.delete(project_id=project_id)

@@ -106,6 +106,7 @@ if __name__ == "__main__":
     # Create project
     driver.projects.create(
         project_id="test_project",
+        action="classify",
         incentives={
             'tier_1': [],
             'tier_2': [],

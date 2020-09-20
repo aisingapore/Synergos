@@ -173,6 +173,7 @@ if __name__ == "__main__":
     project_id = "test_project"
     projects.create(
         project_id=project_id, 
+        action="classify",
         incentives={
             'tier_1': [],
             'tier_2': []
