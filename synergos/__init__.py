@@ -20,7 +20,7 @@ from .registrations import RegistrationTask
 from .tags import TagTask
 from .alignments import AlignmentTask
 from .models import ModelTask
-# from .optimizations import OptimizationTask
+from .optimizations import OptimizationTask
 from .validations import ValidationTask
 from .predictions import PredictionTask
 

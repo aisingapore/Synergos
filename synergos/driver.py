@@ -50,7 +50,10 @@ class Driver:
 
     @property
     def address(self):
-        return f"http://{self.host}:{self.port}"
+        if self.is_secured:
+            return f"https://{self.host}:{self.port}"
+        else:
+            return f"http://{self.host}:{self.port}"
 
     @property
     def projects(self):
@@ -106,6 +109,7 @@ if __name__ == "__main__":
     # Create project
     driver.projects.create(
         project_id="test_project",
+        action="classify",
         incentives={
             'tier_1': [],
             'tier_2': [],
