@@ -68,7 +68,6 @@ class BaseTask(AbstractTask):
         """
         op_function = getattr(requests, operation)
         status = op_function(url=url, json=payload)
-        assert status.status_code in [200, 201]
         return status.json()
 
 

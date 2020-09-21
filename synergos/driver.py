@@ -50,7 +50,10 @@ class Driver:
 
     @property
     def address(self):
-        return f"http://{self.host}:{self.port}"
+        if self.is_secured:
+            return f"https://{self.host}:{self.port}"
+        else:
+            return f"http://{self.host}:{self.port}"
 
     @property
     def projects(self):
