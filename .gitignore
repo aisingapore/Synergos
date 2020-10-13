@@ -10,3 +10,5 @@
 # Misc
 **/__pycache__
 .vscode/
+.synergos/test_script.py
+**/.ipynb_checkpoints/
