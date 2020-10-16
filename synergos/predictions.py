@@ -107,6 +107,7 @@ class PredictionTask(BaseTask):
         project_id: str = None, 
         expt_id: str = None,
         run_id: str = None,
+        auto_align: bool = True,
         dockerised: bool = True,
         **kwargs
     ):
@@ -119,12 +120,14 @@ class PredictionTask(BaseTask):
             project_id (str): Identifier of project
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
+            auto_align (bool): Toggles if multiple feature alignments will be used
             dockerised (bool): Toggles if orchestrations are dockerised
             **kwargs
         Returns:
             
         """
         parameters = {
+            "auto_align": auto_align,
             "dockerised": dockerised,
             "tags": tags
         }
