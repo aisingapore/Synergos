@@ -1413,7 +1413,7 @@ def image_classify_cycle_binary_payloads():
     alignment_payload = {**PROJECT_KEY}
 
     # Specific combination: project|expt_2|run_2
-    combination_single_payload = {**RUN_KEY_3}
+    combination_single_payload = {**RUN_KEY_1, **RUN_KEY_3}
     
     # All combinations under expt_1
     combination_expts_payload = {**EXPT_KEY_1}
@@ -1657,7 +1657,8 @@ def image_classify_cycle_multiclass_payloads():
         ]
     }
     expt_payload_3 = {
-        **EXPT_KEY_3,
+        'project_id': project_id,
+        'expt_id': expt_id_3,
         'model': [
             # Input: N, C, Height, Width [N, 1, 28, 28]
             {
@@ -1719,14 +1720,14 @@ def image_classify_cycle_multiclass_payloads():
         'epochs': 1,
         'base_lr': 0.0005,
         'max_lr': 0.005,
-        'criterion': "MultiLabelMarginLoss"
+        'criterion': "NLLLoss" #"MultiLabelMarginLoss"
     }
     param_set_3 = {
-        'rounds': 2, 
-        'epochs': 1,
+        'rounds': 1, 
+        'epochs': 2,
         'base_lr': 0.0005,
         'max_lr': 0.005,
-        'criterion': "MultiLabelSoftMarginLoss"
+        'criterion': "CrossEntropyLoss" #"MultiLabelSoftMarginLoss"
     }
     param_set_4 = {
         'rounds': 2, 
@@ -1747,7 +1748,7 @@ def image_classify_cycle_multiclass_payloads():
     run_payload_2 = {**RUN_KEY_2, **param_set_2}
     run_payload_3 = {**RUN_KEY_3, **param_set_2}
     run_payload_4 = {**RUN_KEY_4, **param_set_3}
-    run_payload_5 = {**RUN_KEY_4, **param_set_4}
+    run_payload_5 = {**RUN_KEY_5, **param_set_4}
     run_payload_6 = {**RUN_KEY_8, **param_set_5}
 
     participant_payload_1 = {
@@ -1784,7 +1785,7 @@ def image_classify_cycle_multiclass_payloads():
     alignment_payload = {**PROJECT_KEY}
 
     # Specific combination: project|expt_2|run_2
-    combination_single_payload = {**RUN_KEY_3}
+    combination_single_payload = {**RUN_KEY_2}
     
     # All combinations under expt_1
     combination_expts_payload = {**EXPT_KEY_1}
