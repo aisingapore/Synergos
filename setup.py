@@ -21,7 +21,7 @@ def read(fname):
 
 setup(
     name="synergos",
-    version="0.0.1",
+    version="0.1.0",
     author="AI Singapore",
     author_email='markchoo@aisingapore.org',
     description="Interfacing package for interacting with a Synergos network",
