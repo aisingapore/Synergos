@@ -12,3 +12,4 @@
 .vscode/
 .synergos/test_script.py
 **/.ipynb_checkpoints/
+**/.DS_Store
