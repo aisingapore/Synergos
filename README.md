@@ -45,6 +45,7 @@ driver = Driver(host=host, port=port)
 
 driver.projects.create(
     project_id="test_project",
+    action="classify",
     incentives={
         'tier_1': [],
         'tier_2': [],
