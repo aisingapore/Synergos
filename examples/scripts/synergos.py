@@ -1,40 +1,9 @@
-# Synergos
-
-Interfacing package for interacting with TTP container in a Synergos network.
-
-![REST-RPC Endpoint interactions](./docs/images/payload_interactions-[V4]_URL_Interactions.png)*REST-RPC Endpoint interactions supported in the Synergos Grid [V4]*
-
-The Synergos grid prides itself on its modular system of deployment, comprizing of a duet of 2 packages - *Synergos-TTP* & *Synergos-Worker*. By having users install different components depending on their supposed role within the federated grid, most of the complexity associated with federated orchestrations are obscured completely from the users. 
-
-However, this meant that the REST-RPC interface itself had many options and variations, and ironically, becoming somewhat of a complex beast itself, with 11 endpoints each supporting 4 variant operations, for a total of more than 40 routes to choose from! 
-
-Thus, this inspired the creation of the Synergos Driver package, as a means to further simplify this interface.
-
-## Installation
-As Synergos is still under development, it has yet to be deployed on PyPi. Hence, the best way to use it is to install it in development mode in a local virtualenv.
-
-```
-# Download source repository
-git clone https://gitlab.int.aisingapore.org/aims/federatedlearning/synergos.git
-git checkout dev
-cd ./synergos
-
-# Setup virtual environment
-conda create -n synergos_env python=3.7
-
-# Install in development mode
-pip install -e .
-```
-
-## How to use?
-Submitting jobs to the Synergos grid is simple with the driver interface.
-
-```
 from synergos import Driver
 
-host = "0.0.0.0"
+host = "localhost"
 port = 5000
 
+# Initiate Driver
 driver = Driver(host=host, port=port)
 
 ############################################################
@@ -45,6 +14,7 @@ driver = Driver(host=host, port=port)
 
 driver.projects.create(
     project_id="test_project",
+    action="classify",
     incentives={
         'tier_1': [],
         'tier_2': [],
@@ -58,15 +28,35 @@ driver.projects.create(
 driver.experiments.create(
     project_id="test_project",
     expt_id="test_experiment",
-    model=[
+    model = [
+        # Input: N, C, Height, Width [N, 1, dimension, dimension]
+        {
+            "activation": "relu",
+            "is_input": True,
+            "l_type": "Conv2d",
+            "structure": {
+                "in_channels": 1, 
+                "out_channels": 4, # [N, 4, 32, 32]
+                "kernel_size": 3,
+                "stride": 1,
+                "padding": 1
+            }
+        },
+        {
+            "activation": None,
+            "is_input": False,
+            "l_type": "Flatten",
+            "structure": {}
+        },
+        # ------------------------------
         {
             "activation": "sigmoid",
-            "is_input": True,
+            "is_input": False,
             "l_type": "Linear",
             "structure": {
                 "bias": True,
-                "in_features": 15, 
-                "out_features": 1 
+                "in_features": 4 * 32 * 32,
+                "out_features": 1
             }
         }
     ]
@@ -83,7 +73,7 @@ driver.runs.create(
     epochs=1,
     base_lr=0.0005,
     max_lr=0.005,
-    criterion="NLLLoss"
+    criterion="L1Loss"
 )
 
 
@@ -122,25 +112,22 @@ driver.registrations.create(
     role="host"
 )
 
-
 # 1F. Participants registers their tags for a specific project
 
 driver.tags.create(
     project_id="test_project",
     participant_id="test_participant_1",
-    train=[
-        ["non_iid_1"], 
-        ["edge_test_missing_coecerable_vals"],
-        ["edge_test_misalign"],
-        ["edge_test_na_slices"]
-    ],
-    evaluate=[["iid_1"]]
+    train=[["train"]],
+    evaluate=[["evaluate"]],
+    predict = [["predict"]]
 )
 
 driver.tags.create(
     project_id="test_project",
     participant_id="test_participant_2",
-    train=[["non_iid_2"]]
+    train=[["train"]],
+    evaluate=[["evaluate"]],
+    predict=[["predict"]]
 )
 
 
@@ -181,21 +168,9 @@ driver.validations.create(
 # 3B. Perform prediction(s) of combination(s)
 
 driver.predictions.create(
-    tags={"test_project": [["iid_1"]]},
+    tags={"test_project": [["predict"]]},
     participant_id="test_participant_1",
     project_id="test_project",
     expt_id="test_experiment",
     run_id="test_run"
 )
-
-```
-
-## Further Documentations
-For now, documentations are still in progress. In the meantime, use python's `help()` function to find out existing parameters to each of the task classes. In general, each task class has up to 5 methods -  `.create()`, `.read_all`, `.read()`, `.update()`, `.delete()`. 
-
-![Synergos Interface](./docs/images/synergos_driver_classes.png)*Interfacing components that make up the Synergos Driver package*
-
-Alternatively, you may refer to the UML class diagram above for the list of functions supported for each component class.
-
-In general, phase 1 operations (i.e. connection) have support for all methods, but phase 2 and 3 operations (i.e. training & evaluation) drop support for manual user updates or deletions of metadata entries within the grid, since all processes are dynamically generated by the system this point on.
-
