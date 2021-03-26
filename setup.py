@@ -23,7 +23,7 @@ setup(
     name="synergos",
     version="0.1.0",
     author="AI Singapore",
-    author_email='markchoo@aisingapore.org',
+    author_email='synergos-ext@aisingapore.org',
     description="Interfacing package for interacting with a Synergos network",
     long_description=read('README.md'),
     classifiers=[
