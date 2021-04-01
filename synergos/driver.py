@@ -11,6 +11,7 @@ import logging
 
 
 # Custom
+from .collaborations import CollaborationTask
 from .projects import ProjectTask
 from .experiments import ExperimentTask
 from .runs import RunTask
@@ -54,6 +55,10 @@ class Driver:
             return f"https://{self.host}:{self.port}"
         else:
             return f"http://{self.host}:{self.port}"
+
+    @property
+    def collaborations(self):
+        return CollaborationTask(address=self.address)
 
     @property
     def projects(self):

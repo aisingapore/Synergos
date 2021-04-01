@@ -52,9 +52,10 @@ class AlignmentTask(BaseTask):
     # Helpers #
     ###########
 
-    def _generate_url(self, project_id: str) -> str:
+    def _generate_url(self, collab_id: str, project_id: str) -> str:
         return super()._generate_url(
             endpoint=self.endpoints.ALIGNMENTS,
+            collab_id=collab_id,
             project_id=project_id
         )
 
@@ -62,7 +63,7 @@ class AlignmentTask(BaseTask):
     # Core functions #
     ##################
 
-    def create(self, project_id: str, **kwargs):
+    def create(self, collab_id: str, project_id: str, **kwargs):
         """ Triggers multiple feature alignment for the participant under a 
             specific project in the federated grid
 
@@ -74,12 +75,12 @@ class AlignmentTask(BaseTask):
         """
         return self._execute_operation(
             operation="post",
-            url=self._generate_url(project_id=project_id),
+            url=self._generate_url(collab_id=collab_id, project_id=project_id),
             payload=None
         )
 
 
-    def read(self, project_id: str):
+    def read(self, collab_id: str, project_id: str):
         """ Retrieves a single set of tags' information/configurations created
             in the federated grid
 
@@ -90,7 +91,7 @@ class AlignmentTask(BaseTask):
         """
         return self._execute_operation(
             operation="get",
-            url=self._generate_url(project_id=project_id),
+            url=self._generate_url(collab_id=collab_id, project_id=project_id),
             payload=None
         )
     
@@ -100,15 +101,22 @@ if __name__ == "__main__":
     port = 5000
     address = f"http://{host}:{port}"
 
+    from .collaborations import CollaborationTask
     from .projects import ProjectTask
     from .participants import ParticipantTask
     from .registrations import RegistrationTask
     from .tags import TagTask
     
+    # Create a reference collaboration
+    collaborations = CollaborationTask(address)
+    collab_id = "test_collab"
+    collaborations.create(collab_id=collab_id)
+
     # Create reference project
     projects = ProjectTask(address)
     project_id = "test_project"
     projects.create(
+        collab_id=collab_id,
         project_id=project_id, 
         action="classify",
         incentives={
@@ -122,33 +130,38 @@ if __name__ == "__main__":
     participant_id_1 = "test_participant_1"
     participant_id_2 = "test_participant_2"
 
-    parameter_set_1 = {
+    parameter_set_1 = {}
+    participants.create(participant_id=participant_id_1, **parameter_set_1)
+
+    parameter_set_2 = {}
+    participants.create(participant_id=participant_id_2, **parameter_set_2)  
+
+    # Create reference registrations
+    registrations = RegistrationTask(address)
+
+    registrations.add_node(**{
         'host': '172.17.0.2',
         'port': 8020,
         'f_port': 5000,
         'log_msgs': True,
         'verbose': True
-    }
-    participants.create(participant_id=participant_id_1, **parameter_set_1)
-
-    parameter_set_2 = {
-        'host': '172.17.0.3',
-        'port': 8020,
-        'f_port': 5000,
-        'log_msgs': True,
-        'verbose': True
-    }
-    participants.create(participant_id=participant_id_2, **parameter_set_2)  
-
-    # Create reference registrations
-    registrations = RegistrationTask(address)
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
         role='host'
     )
 
+    registrations.add_node(**{
+        'host': '172.17.0.3',
+        'port': 8020,
+        'f_port': 5000,
+        'log_msgs': True,
+        'verbose': True
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
         role='guest'
@@ -157,32 +170,34 @@ if __name__ == "__main__":
     # Create reference tags
     tags = TagTask(address)
     tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
         train=[
-            # ["non_iid_1"], 
-            # ["edge_test_missing_coecerable_vals"],
-            ["edge_test_misalign"],
-            ["edge_test_na_slices"]
+            ["tabular", "abalone", "data1", "train"]
+            # ["tabular", "heart_disease", "data1", "edge_test_misalign"],
+            # ["tabular", "heart_disease", "data1", "edge_test_na_slices"]
         ],
-        evaluate=[["iid_1"]]
+        evaluate=[["tabular", "abalone", "data1", "evaluate"]]
     )
 
     tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
-        train=[["non_iid_2"]]
+        train=[["tabular", "abalone", "data2", "train"]],
+        evaluate=[["tabular", "abalone", "data2", "evaluate"]]
     ) 
 
     alignments = AlignmentTask(address)
 
     # Test alignment creation
-    create_response = alignments.create(project_id=project_id)
+    create_response = alignments.create(collab_id=collab_id, project_id=project_id)
     print("Alignments: Create response:", create_response)
 
     # Test alignment retrieval
-    single_read_response = alignments.read(project_id=project_id)
+    single_read_response = alignments.read(collab_id=collab_id, project_id=project_id)
     print("Alignments: Read response:", single_read_response)
 
     # Clean up
-    projects.delete(project_id=project_id)
+    collaborations.delete(collab_id=collab_id)

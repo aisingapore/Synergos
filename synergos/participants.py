@@ -58,37 +58,16 @@ class ParticipantTask(BaseTask):
     # Core functions #
     ##################
 
-    def create(
-        self, 
-        participant_id: str, 
-        host: str, 
-        port: int, 
-        f_port: int,
-        log_msgs: bool, 
-        verbose: bool,
-        **kwargs
-    ):
+    def create(self, participant_id: str, **kwargs):
         """ Registers a participant in the federated grid
 
         Args:
             participant_id (str): Identifier of participant
-            host (str): Host IP of the participant's server
-            port (int): Websocket port on which federated training resides
-            f_port (int): Flask port on which REST-RPC orchestrations resides
-            log_msgs (bool): Toggles if computation operations should be logged
-            verbose (bool): Toggles verbosity of computation logging
             **kwargs
         Returns:
             
         """
-        parameters = {
-            'id': participant_id, 
-            'host': host,
-            'port': port,
-            'f_port': f_port,
-            'log_msgs': log_msgs,
-            'verbose': verbose
-        }
+        parameters = {'id': participant_id}
 
         return self._execute_operation(
             operation="post",
@@ -164,13 +143,20 @@ if __name__ == "__main__":
     host = "0.0.0.0"
     port = 5000
     address = f"http://{host}:{port}"
-
-    from .projects import ProjectTask
     
+    from .collaborations import CollaborationTask
+    from .projects import ProjectTask
+
+    # Create a reference collaboration
+    collaborations = CollaborationTask(address)
+    collab_id = "test_collab"
+    collaborations.create(collab_id=collab_id)
+
     # Create reference project
     projects = ProjectTask(address)
     project_id = "test_project"
     projects.create(
+        collab_id=collab_id,
         project_id=project_id,
         action="classify", 
         incentives={
@@ -184,26 +170,14 @@ if __name__ == "__main__":
     participant_id_2 = "test_participant_2"
 
     # Test participant creation
-    parameter_set_1 = {
-        'host': '123.456.789.0',
-        'port': 12345,
-        'f_port': 6789,
-        'log_msgs': True,
-        'verbose': True
-    }
+    parameter_set_1 = {}
     create_response_1 = participants.create(
         participant_id=participant_id_1,
         **parameter_set_1
     )
     print("Participant 1: Create response:", create_response_1)
 
-    parameter_set_2 = {
-        'host': '123.456.789.1',
-        'port': 9876,
-        'f_port': 54321,
-        'log_msgs': True,
-        'verbose': True
-    }
+    parameter_set_2 = {}
     create_response_2 = participants.create(
         participant_id=participant_id_2,
         **parameter_set_2
@@ -223,18 +197,12 @@ if __name__ == "__main__":
 
     # Test participant update
     update_response_1 = participants.update(
-        participant_id=participant_id_1, 
-        port=8020,
-        f_port=5000,
-        log_msgs=False,
-        verbose=False
+        participant_id=participant_id_1
     )
     print("Participant 1: Update response:", update_response_1)
 
     update_response_2 = participants.update(
-        participant_id=participant_id_2,
-        port=8020,
-        f_port=5000
+        participant_id=participant_id_2
     )
     print("Participant 2: Update response:", update_response_2)
 
@@ -248,4 +216,4 @@ if __name__ == "__main__":
     print("Participants left:", participants.read_all()) 
 
     # Clean up
-    projects.delete(project_id=project_id)
+    collaborations.delete(collab_id=collab_id)

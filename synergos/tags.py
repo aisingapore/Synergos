@@ -45,9 +45,15 @@ class TagTask(BaseTask):
     # Helpers #
     ###########
 
-    def _generate_url(self, project_id: str, participant_id: str) -> str:
+    def _generate_url(
+        self,
+        collab_id: str,
+        project_id: str, 
+        participant_id: str
+    ) -> str:
         return super()._generate_url(
             endpoint=self.endpoints.TAGS,
+            collab_id=collab_id,
             project_id=project_id,
             participant_id=participant_id
         )
@@ -58,6 +64,7 @@ class TagTask(BaseTask):
 
     def create(
         self,
+        collab_id: str,
         project_id: str,
         participant_id: str, 
         train: List[List[str]],
@@ -69,6 +76,7 @@ class TagTask(BaseTask):
             project in the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             participant_id (str): Identifier of participant
             train (list(list(str))): Filepath tokens to training data
@@ -83,6 +91,7 @@ class TagTask(BaseTask):
         return self._execute_operation(
             operation="post",
             url=self._generate_url(
+                collab_id=collab_id,
                 project_id=project_id, 
                 participant_id=participant_id
             ),
@@ -90,11 +99,12 @@ class TagTask(BaseTask):
         )
 
 
-    def read(self, project_id: str, participant_id: str):
+    def read(self, collab_id: str, project_id: str, participant_id: str):
         """ Retrieves a single set of tags' information/configurations created
             in the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             participant_id (str): Identifier of participant
         Returns:
@@ -103,6 +113,7 @@ class TagTask(BaseTask):
         return self._execute_operation(
             operation="get",
             url=self._generate_url(
+                collab_id=collab_id,
                 project_id=project_id, 
                 participant_id=participant_id
             ),
@@ -110,11 +121,18 @@ class TagTask(BaseTask):
         )
     
     
-    def update(self, project_id: str, participant_id: str, **updates):
+    def update(
+        self, 
+        collab_id: str, 
+        project_id: str, 
+        participant_id: str, 
+        **updates
+    ):
         """ Updates a a single set of tags' information/configurations created 
             in the federated grid
         
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             participant_id (str): Identifier of participant
             **updates: Keyword pairs of parameters to be updated
@@ -124,6 +142,7 @@ class TagTask(BaseTask):
         return self._execute_operation(
             operation="put",
             url=self._generate_url(
+                collab_id=collab_id,
                 project_id=project_id, 
                 participant_id=participant_id
             ),
@@ -131,11 +150,17 @@ class TagTask(BaseTask):
         )
 
     
-    def delete(self, project_id: str, participant_id: str):
+    def delete(
+        self, 
+        collab_id: str,
+        project_id: str, 
+        participant_id: str
+    ):
         """ Removes a single set of tags' information/configurations previously 
             created from the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             participant_id (str): Identifier of participant
         Returns:
@@ -144,6 +169,7 @@ class TagTask(BaseTask):
         return self._execute_operation(
             operation="delete",
             url=self._generate_url(
+                collab_id=collab_id,
                 project_id=project_id, 
                 participant_id=participant_id
             ),
@@ -156,14 +182,21 @@ if __name__ == "__main__":
     port = 5000
     address = f"http://{host}:{port}"
 
+    from .collaborations import CollaborationTask
     from .projects import ProjectTask
     from .participants import ParticipantTask
     from .registrations import RegistrationTask
     
+    # Create a reference collaboration
+    collaborations = CollaborationTask(address)
+    collab_id = "test_collab"
+    collaborations.create(collab_id=collab_id)
+
     # Create reference project
     projects = ProjectTask(address)
     project_id = "test_project"
     projects.create(
+        collab_id=collab_id,
         project_id=project_id, 
         action="classify",
         incentives={
@@ -177,34 +210,38 @@ if __name__ == "__main__":
     participant_id_1 = "test_participant_1"
     participant_id_2 = "test_participant_2"
 
-    parameter_set_1 = {
-        'host': '123.456.789.0',
-        'port': 12345,
-        'f_port': 6789,
-        'log_msgs': True,
-        'verbose': True
-    }
+    parameter_set_1 = {}
     participants.create(participant_id=participant_id_1, **parameter_set_1)
 
-    parameter_set_2 = {
-        'host': '123.456.789.1',
-        'port': 9876,
-        'f_port': 54321,
-        'log_msgs': True,
-        'verbose': True
-    }
+    parameter_set_2 = {}
     participants.create(participant_id=participant_id_2, **parameter_set_2)  
 
     registrations = RegistrationTask(address)
 
     # Create reference registrations
+    registrations.add_node(**{
+        'host': '123.456.789.0',
+        'port': 12345,
+        'f_port': 6789,
+        'log_msgs': True,
+        'verbose': True
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
         role='host'
     )
 
+    registrations.add_node(**{
+        'host': '123.456.789.1',
+        'port': 9876,
+        'f_port': 54321,
+        'log_msgs': True,
+        'verbose': True
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
         role='guest'
@@ -214,6 +251,7 @@ if __name__ == "__main__":
 
     # Test tag creation
     create_response_1 = tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
         train=[["train"]],
@@ -222,6 +260,7 @@ if __name__ == "__main__":
     print("Tags 1: Create response:", create_response_1)
 
     create_response_2 = tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
         train=[["train"]],
@@ -231,12 +270,14 @@ if __name__ == "__main__":
 
     # Test tag retrieval single
     single_read_response_1 = tags.read(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1
     )
     print("Tags 1: Read response:", single_read_response_1)
 
     single_read_response_2 = tags.read(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2
     )
@@ -244,6 +285,7 @@ if __name__ == "__main__":
 
     # Test tag update
     update_response_1 = tags.update(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1, 
         predict=[["predict"]]
@@ -251,6 +293,7 @@ if __name__ == "__main__":
     print("Tags 1: Update response:", update_response_1)
 
     update_response_2 = tags.update(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2, 
         predict=[["predict"]]
@@ -259,16 +302,18 @@ if __name__ == "__main__":
 
     # Test tag deletion
     delete_response_1 = tags.delete(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1
     )
     print("Tags 1: delete response:", delete_response_1)
 
     delete_response_2 = tags.delete(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2
     )
     print("Tags 2: delete response:", delete_response_2)
 
     # Clean up
-    projects.delete(project_id=project_id)
+    collaborations.delete(collab_id=collab_id)

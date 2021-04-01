@@ -45,21 +45,30 @@ class RunTask(BaseTask):
     # Helpers #
     ###########
 
-    def _generate_bulk_url(self, project_id: str, expt_id: str) -> str:
+    def _generate_bulk_url(
+        self, 
+        collab_id: str, 
+        project_id: str, 
+        expt_id: str
+    ) -> str:
         return self._generate_url(
             endpoint=self.endpoints.RUNS,
+            collab_id=collab_id,
             project_id=project_id,
             expt_id=expt_id
         )
 
+
     def _generate_single_url(
         self, 
+        collab_id: str,
         project_id: str,
         expt_id: str,
         run_id: str
     ) -> str:
         return self._generate_url(
             endpoint=self.endpoints.RUN,
+            collab_id=collab_id,
             project_id=project_id,
             expt_id=expt_id,
             run_id=run_id
@@ -71,6 +80,7 @@ class RunTask(BaseTask):
 
     def create(
         self, 
+        collab_id: str,
         project_id: str, 
         expt_id: str,
         run_id: str,
@@ -99,6 +109,7 @@ class RunTask(BaseTask):
             under a specific project
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project experiment is under
             expt_id (str): Identifier of experiment
             model (list): Layer architectures of an experiment model
@@ -156,16 +167,21 @@ class RunTask(BaseTask):
 
         return self._execute_operation(
             operation="post",
-            url=self._generate_bulk_url(project_id=project_id, expt_id=expt_id),
+            url=self._generate_bulk_url(
+                collab_id=collab_id,
+                project_id=project_id, 
+                expt_id=expt_id
+            ),
             payload=parameters
         )
 
     
-    def read_all(self, project_id: str, expt_id: str):
+    def read_all(self, collab_id: str, project_id: str, expt_id: str):
         """ Retrieves information/configurations of all runs created in the
             federated grid for an experiment under a specific project
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project experiment is under
             expt_id (str): Identifier of experiment
         Returns:
@@ -173,16 +189,21 @@ class RunTask(BaseTask):
         """
         return self._execute_operation(
             operation="get",
-            url=self._generate_bulk_url(project_id=project_id, expt_id=expt_id),
+            url=self._generate_bulk_url(
+                collab_id=collab_id,
+                project_id=project_id, 
+                expt_id=expt_id
+            ),
             payload=None
         )
 
 
-    def read(self, project_id: str, expt_id: str, run_id: str):
+    def read(self, collab_id: str, project_id: str, expt_id: str, run_id: str):
         """ Retrieves a single run's information/configurations created for an 
             experiment under a specific project
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project experiment is under
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
@@ -192,6 +213,7 @@ class RunTask(BaseTask):
         return self._execute_operation(
             operation="get",
             url=self._generate_single_url(
+                collab_id=collab_id,
                 project_id=project_id, 
                 expt_id=expt_id,
                 run_id=run_id
@@ -200,11 +222,19 @@ class RunTask(BaseTask):
         )
     
     
-    def update(self, project_id: str, expt_id: str, run_id: str, **updates):
+    def update(
+        self, 
+        collab_id: str, 
+        project_id: str, 
+        expt_id: str, 
+        run_id: str, 
+        **updates
+    ):
         """ Updates a run's information/configurations created in the federated
             grid
         
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project experiment is under
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
@@ -215,6 +245,7 @@ class RunTask(BaseTask):
         return self._execute_operation(
             operation="put",
             url=self._generate_single_url(
+                collab_id=collab_id,
                 project_id=project_id, 
                 expt_id=expt_id,
                 run_id=run_id
@@ -223,11 +254,18 @@ class RunTask(BaseTask):
         )
 
     
-    def delete(self, project_id: str, expt_id: str, run_id: str):
+    def delete(
+        self, 
+        collab_id: str,
+        project_id: str, 
+        expt_id: str, 
+        run_id: str
+    ):
         """ Removes a run's information/configurations previously created from 
             the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project experiment is under
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
@@ -237,6 +275,7 @@ class RunTask(BaseTask):
         return self._execute_operation(
             operation="delete",
             url=self._generate_single_url(
+                collab_id=collab_id,
                 project_id=project_id, 
                 expt_id=expt_id,
                 run_id=run_id
@@ -250,13 +289,20 @@ if __name__ == "__main__":
     port = 5000
     address = f"http://{host}:{port}"
 
+    from .collaborations import CollaborationTask
     from .projects import ProjectTask
     from .experiments import ExperimentTask
+
+    # Create a reference collaboration
+    collaborations = CollaborationTask(address)
+    collab_id = "test_collab"
+    collaborations.create(collab_id=collab_id)
 
     # Create reference project
     projects = ProjectTask(address)
     project_id = "test_project"
     projects.create(
+        collab_id=collab_id,
         project_id=project_id,
         action="classify", 
         incentives={
@@ -269,6 +315,7 @@ if __name__ == "__main__":
     experiments = ExperimentTask(address)
     expt_id = "test_experiment"
     experiments.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id,
         model=[
@@ -311,6 +358,7 @@ if __name__ == "__main__":
         'precision_fractional': 7,
     }
     create_response_1 = runs.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id,
         run_id=run_id_1,
@@ -319,6 +367,7 @@ if __name__ == "__main__":
     print("Run 1: Create response:", create_response_1)
 
     create_response_2 = runs.create( # Use default parameter set
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id,
         run_id=run_id_2
@@ -326,11 +375,16 @@ if __name__ == "__main__":
     print("Run 2: Create response:", create_response_2)
 
     # Test run retrieval bulk
-    read_all_response = runs.read_all(project_id=project_id, expt_id=expt_id)
+    read_all_response = runs.read_all(
+        collab_id=collab_id,
+        project_id=project_id,
+        expt_id=expt_id
+    )
     print("Read all response:", read_all_response)  
 
     # Test run retrieval single
     read_response_1 = runs.read(
+        collab_id=collab_id,
         project_id=project_id, 
         expt_id=expt_id,
         run_id=run_id_1
@@ -338,6 +392,7 @@ if __name__ == "__main__":
     print("Run 1: Read response:", read_response_1)
 
     read_response_2 = runs.read(
+        collab_id=collab_id,
         project_id=project_id, 
         expt_id=expt_id,
         run_id=run_id_2
@@ -346,6 +401,7 @@ if __name__ == "__main__":
 
     # Test run update
     update_response_1 = runs.update(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id,
         run_id=run_id_1,
@@ -357,6 +413,7 @@ if __name__ == "__main__":
     print("Run 1: Update response:", update_response_1)
 
     update_response_2 = runs.update(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id,
         run_id=run_id_2,
@@ -370,6 +427,7 @@ if __name__ == "__main__":
 
     # Test run deletion
     delete_response_1 = runs.delete(
+        collab_id=collab_id,
         project_id=project_id, 
         expt_id=expt_id,
         run_id=run_id_1
@@ -377,6 +435,7 @@ if __name__ == "__main__":
     print("Run 1: delete response:", delete_response_1)
 
     delete_response_2 = runs.delete(
+        collab_id=collab_id,
         project_id=project_id, 
         expt_id=expt_id,
         run_id=run_id_2
@@ -384,9 +443,10 @@ if __name__ == "__main__":
     print("Run 2: delete response:", delete_response_2)
 
     print("Runs left:", runs.read_all(
+        collab_id=collab_id,
         project_id=project_id, 
         expt_id=expt_id
     ))
 
     # Clean up
-    projects.delete(project_id=project_id)
+    collaborations.delete(collab_id=collab_id)

@@ -57,38 +57,43 @@ class PredictionTask(BaseTask):
     def _generate_url(
         self, 
         participant_id: str,
+        collab_id: str,
         project_id: str = None, 
         expt_id: str = None,
         run_id: str = None
     ) -> str:
-        if participant_id and project_id and expt_id and run_id:
+        if participant_id and collab_id and project_id and expt_id and run_id:
             return super()._generate_url(
                 endpoint=self.endpoints.RUN_COMBINATION,
                 participant_id=participant_id,
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id,
                 run_id=run_id
             )
 
-        elif participant_id and project_id and expt_id:
+        elif participant_id and collab_id and project_id and expt_id:
             return super()._generate_url(
                 endpoint=self.endpoints.EXPERIMENT_COMBINATIONS,
                 participant_id=participant_id,
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id
             )
 
-        elif participant_id and project_id:
+        elif participant_id and collab_id and project_id:
             return super()._generate_url(
                 endpoint=self.endpoints.PROJECT_COMBINATIONS,
                 participant_id=participant_id,
+                collab_id=collab_id,
                 project_id=project_id
             )
 
-        elif participant_id:
+        elif participant_id and collab_id:
             return super()._generate_url(
                 endpoint=self.endpoints.PARTICIPANT_COMBINATIONS,
-                participant_id=participant_id
+                participant_id=participant_id,
+                collab_id=collab_id
             )
 
         else:
@@ -104,6 +109,7 @@ class PredictionTask(BaseTask):
         self, 
         tags: Dict[str, List[List[str]]],
         participant_id: str,
+        collab_id: str,
         project_id: str = None, 
         expt_id: str = None,
         run_id: str = None,
@@ -136,6 +142,7 @@ class PredictionTask(BaseTask):
             operation="post",
             url=self._generate_url(
                 participant_id=participant_id,
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id,
                 run_id=run_id
@@ -147,6 +154,7 @@ class PredictionTask(BaseTask):
     def read(
         self, 
         participant_id: str,
+        collab_id: str,
         project_id: str = None, 
         expt_id: str = None,
         run_id: str = None,
@@ -166,6 +174,7 @@ class PredictionTask(BaseTask):
             operation="get",
             url=self._generate_url(
                 participant_id=participant_id,
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id,
                 run_id=run_id
@@ -179,6 +188,7 @@ if __name__ == "__main__":
     port = 5000
     address = f"http://{host}:{port}"
 
+    from .collaborations import CollaborationTask
     from .projects import ProjectTask
     from .experiments import ExperimentTask
     from .runs import RunTask
@@ -188,10 +198,16 @@ if __name__ == "__main__":
     from .alignments import AlignmentTask
     from .models import ModelTask
     
+    # Create a reference collaboration
+    collaborations = CollaborationTask(address)
+    collab_id = "test_collab"
+    collaborations.create(collab_id=collab_id)
+
     # Create reference project
     projects = ProjectTask(address)
     project_id = "test_project"
     projects.create(
+        collab_id=collab_id,
         project_id=project_id, 
         action="classify",
         incentives={
@@ -206,6 +222,7 @@ if __name__ == "__main__":
     expt_id_2 = "test_expt_2"
 
     experiments.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
         model=[
@@ -223,6 +240,7 @@ if __name__ == "__main__":
     )
 
     experiments.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         model=[
@@ -287,6 +305,7 @@ if __name__ == "__main__":
         'max_lr': 0.001
     }
     runs.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
         run_id=run_id_1,
@@ -294,6 +313,7 @@ if __name__ == "__main__":
     )
 
     runs.create( # Use default parameter set on model 1
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
         run_id=run_id_2,
@@ -305,6 +325,7 @@ if __name__ == "__main__":
     ) 
 
     runs.create( # Use default parameter set on model 2
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         run_id=run_id_2,
@@ -320,33 +341,38 @@ if __name__ == "__main__":
     participant_id_1 = "test_participant_1"
     participant_id_2 = "test_participant_2"
 
-    parameter_set_1 = {
+    parameter_set_1 = {}
+    participants.create(participant_id=participant_id_1, **parameter_set_1)
+
+    parameter_set_2 = {}
+    participants.create(participant_id=participant_id_2, **parameter_set_2)  
+
+    # Create reference registrations
+    registrations = RegistrationTask(address)
+    
+    registrations.add_node(**{
         'host': '172.17.0.2',
         'port': 8020,
         'f_port': 5000,
         'log_msgs': True,
         'verbose': True
-    }
-    participants.create(participant_id=participant_id_1, **parameter_set_1)
-
-    parameter_set_2 = {
-        'host': '172.17.0.3',
-        'port': 8020,
-        'f_port': 5000,
-        'log_msgs': True,
-        'verbose': True
-    }
-    participants.create(participant_id=participant_id_2, **parameter_set_2)  
-
-    # Create reference registrations
-    registrations = RegistrationTask(address)
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
         role='host'
     )
 
+    registrations.add_node(**{
+        'host': '172.17.0.3',
+        'port': 8020,
+        'f_port': 5000,
+        'log_msgs': True,
+        'verbose': True
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
         role='guest'
@@ -355,41 +381,49 @@ if __name__ == "__main__":
     # Create reference tags
     tags = TagTask(address)
     tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
         train=[
-            # ["non_iid_1"], 
-            # ["edge_test_missing_coecerable_vals"],
-            ["edge_test_misalign"],
-            ["edge_test_na_slices"]
+            ["tabular", "abalone", "data1", "train"]
+            # ["tabular", "heart_disease", "data1", "edge_test_misalign"],
+            # ["tabular", "heart_disease", "data1", "edge_test_na_slices"]
         ],
-        evaluate=[["iid_1"]]
+        evaluate=[["tabular", "abalone", "data1", "evaluate"]]
     )
 
     tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
-        train=[["non_iid_2"]]
+        train=[["tabular", "abalone", "data2", "train"]],
+        evaluate=[["tabular", "abalone", "data2", "evaluate"]]
     )
 
     # Create reference alignments
     alignments = AlignmentTask(address)
-    create_response = alignments.create(project_id=project_id)
+    create_response = alignments.create(
+        collab_id=collab_id,
+        project_id=project_id
+    )
 
     # Create reference models
     models = ModelTask(address)
     models.create( # All combinations under a project
+        collab_id=collab_id,
         project_id=project_id
     )
 
     predictions = PredictionTask(address)
 
     # Test prediction(s) creation
-    tag_parameter_set = {"test_project": [["iid_1"]]}
-
+    tag_parameter_set = {
+        "test_project": [["tabular", "abalone", "data1", "predict"]]
+    }
     create_response_1 = predictions.create( # A single participant combination
         tags=tag_parameter_set,
         participant_id=participant_id_1,
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         run_id=run_id_2
@@ -399,6 +433,7 @@ if __name__ == "__main__":
     create_response_2 = predictions.create( # All combinations under a run
         tags=tag_parameter_set,
         participant_id=participant_id_1,
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2
     )
@@ -407,19 +442,22 @@ if __name__ == "__main__":
     create_response_3 = predictions.create( # All combinations under an expt
         tags=tag_parameter_set,
         participant_id=participant_id_1,
+        collab_id=collab_id,
         project_id=project_id
     )
     print("Predictions: Create response 3:", create_response_3)
 
     create_response_4 = predictions.create( # All combinations under a project
         tags=tag_parameter_set,
-        participant_id=participant_id_1
+        participant_id=participant_id_1,
+        collab_id=collab_id
     )
     print("Predictions: Create response 4:", create_response_4)
 
     # Test validation(s) retrieval
     read_response_1 = predictions.read( # A single participant combination
         participant_id=participant_id_1,
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         run_id=run_id_2
@@ -428,6 +466,7 @@ if __name__ == "__main__":
 
     read_response_2 = predictions.read( # All combinations under a run
         participant_id=participant_id_1,
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2
     )
@@ -435,14 +474,16 @@ if __name__ == "__main__":
 
     read_response_3 = predictions.read( # All combinations under an expt
         participant_id=participant_id_1,
+        collab_id=collab_id,
         project_id=project_id
     )
     print("Predictions: Read response 3:", read_response_3)
 
     read_response_4 = predictions.read( # All combinations under a project
-        participant_id=participant_id_1
+        participant_id=participant_id_1,
+        collab_id=collab_id
     )
     print("Predictions: Read response 4:", read_response_4)
 
     # Clean up
-    projects.delete(project_id=project_id)
+    collaborations.delete(collab_id=collab_id)

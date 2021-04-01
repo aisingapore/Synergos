@@ -54,33 +54,37 @@ class ModelTask(BaseTask):
 
     def _generate_url(
         self, 
+        collab_id: str,
         project_id: str, 
         expt_id: str = None,
         run_id: str = None,
     ) -> str:
-        if project_id and expt_id and run_id:
+        if collab_id and project_id and expt_id and run_id:
             return super()._generate_url(
                 endpoint=self.endpoints.RUN_COMBINATION,
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id,
                 run_id=run_id
             )
 
-        elif project_id and expt_id:
+        elif collab_id and project_id and expt_id:
             return super()._generate_url(
                 endpoint=self.endpoints.EXPERIMENT_COMBINATIONS,
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id
             )
 
-        elif project_id:
+        elif collab_id and project_id:
             return super()._generate_url(
                 endpoint=self.endpoints.PROJECT_COMBINATIONS,
+                collab_id=collab_id,
                 project_id=project_id
             )
 
         else:
-            raise ValueError("Training triggers are restricted to the project scope. Specify at least 1 project!")
+            raise ValueError("Training triggers are restricted to the project scope. Specify at least 1 valid project!")
 
 
     ##################
@@ -89,6 +93,7 @@ class ModelTask(BaseTask):
 
     def create(
         self, 
+        collab_id: str,
         project_id: str, 
         expt_id: str = None,
         run_id: str = None,
@@ -123,6 +128,7 @@ class ModelTask(BaseTask):
         return self._execute_operation(
             operation="post",
             url=self._generate_url(
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id,
                 run_id=run_id
@@ -132,7 +138,8 @@ class ModelTask(BaseTask):
 
 
     def read(
-        self, 
+        self,
+        collab_id: str, 
         project_id: str, 
         expt_id: str = None,
         run_id: str = None,
@@ -150,6 +157,7 @@ class ModelTask(BaseTask):
         return self._execute_operation(
             operation="get",
             url=self._generate_url(
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id,
                 run_id=run_id
@@ -163,6 +171,7 @@ if __name__ == "__main__":
     port = 5000
     address = f"http://{host}:{port}"
 
+    from .collaborations import CollaborationTask
     from .projects import ProjectTask
     from .experiments import ExperimentTask
     from .runs import RunTask
@@ -171,10 +180,16 @@ if __name__ == "__main__":
     from .tags import TagTask
     from .alignments import AlignmentTask
     
+    # Create a reference collaboration
+    collaborations = CollaborationTask(address)
+    collab_id = "test_collab"
+    collaborations.create(collab_id=collab_id)
+
     # Create reference project
     projects = ProjectTask(address)
     project_id = "test_project"
     projects.create(
+        collab_id=collab_id,
         project_id=project_id, 
         action="classify",
         incentives={
@@ -189,6 +204,7 @@ if __name__ == "__main__":
     expt_id_2 = "test_expt_2"
 
     experiments.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
         model=[
@@ -206,6 +222,7 @@ if __name__ == "__main__":
     )
 
     experiments.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         model=[
@@ -270,6 +287,7 @@ if __name__ == "__main__":
         'max_lr': 0.001
     }
     runs.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
         run_id=run_id_1,
@@ -277,6 +295,7 @@ if __name__ == "__main__":
     )
 
     runs.create( # Use default parameter set on model 1
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
         run_id=run_id_2,
@@ -288,6 +307,7 @@ if __name__ == "__main__":
     ) 
 
     runs.create( # Use default parameter set on model 2
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         run_id=run_id_2,
@@ -303,33 +323,38 @@ if __name__ == "__main__":
     participant_id_1 = "test_participant_1"
     participant_id_2 = "test_participant_2"
 
-    parameter_set_1 = {
+    parameter_set_1 = {}
+    participants.create(participant_id=participant_id_1, **parameter_set_1)
+
+    parameter_set_2 = {}
+    participants.create(participant_id=participant_id_2, **parameter_set_2)  
+
+    # Create reference registrations
+    registrations = RegistrationTask(address)
+
+    registrations.add_node(**{
         'host': '172.17.0.2',
         'port': 8020,
         'f_port': 5000,
         'log_msgs': True,
         'verbose': True
-    }
-    participants.create(participant_id=participant_id_1, **parameter_set_1)
-
-    parameter_set_2 = {
-        'host': '172.17.0.3',
-        'port': 8020,
-        'f_port': 5000,
-        'log_msgs': True,
-        'verbose': True
-    }
-    participants.create(participant_id=participant_id_2, **parameter_set_2)  
-
-    # Create reference registrations
-    registrations = RegistrationTask(address)
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
         role='host'
     )
 
+    registrations.add_node(**{
+        'host': '172.17.0.3',
+        'port': 8020,
+        'f_port': 5000,
+        'log_msgs': True,
+        'verbose': True
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
         role='guest'
@@ -338,33 +363,39 @@ if __name__ == "__main__":
     # Create reference tags
     tags = TagTask(address)
     tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
         train=[
-            # ["non_iid_1"], 
-            # ["edge_test_missing_coecerable_vals"],
-            ["edge_test_misalign"],
-            ["edge_test_na_slices"]
+            ["tabular", "abalone", "data1", "train"]
+            # ["tabular", "heart_disease", "data1", "edge_test_misalign"],
+            # ["tabular", "heart_disease", "data1", "edge_test_na_slices"]
         ],
-        evaluate=[["iid_1"]]
+        evaluate=[["tabular", "abalone", "data1", "evaluate"]]
     )
 
     tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
-        train=[["non_iid_2"]]
+        train=[["tabular", "abalone", "data2", "train"]],
+        evaluate=[["tabular", "abalone", "data2", "evaluate"]]
     )
 
     # Create reference alignments
     alignments = AlignmentTask(address)
-    create_response = alignments.create(project_id=project_id)
+    create_response = alignments.create(
+        collab_id=collab_id, 
+        project_id=project_id
+    )
     print("Alignments: Create response:", create_response)
-    print(f"Aligned Experiments: {experiments.read_all(project_id=project_id)}")
+    print(f"Aligned Experiments: {experiments.read_all(collab_id=collab_id, project_id=project_id)}")
 
     models = ModelTask(address)
 
     # Test model(s) creation
     create_response_1 = models.create( # A single combination
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         run_id=run_id_2
@@ -372,18 +403,21 @@ if __name__ == "__main__":
     print("Models: Create response 1:", create_response_1)
 
     create_response_2 = models.create( # All combinations under an experiment
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1
     )
     print("Models: Create response 2:", create_response_2)
 
     create_response_3 = models.create( # All combinations under a project
+        collab_id=collab_id,
         project_id=project_id
     )
     print("Models: Create response 3:", create_response_3)
 
     # Test model(s) retrieval
     read_response_1 = models.read( # A single combination
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         run_id=run_id_2
@@ -391,15 +425,17 @@ if __name__ == "__main__":
     print("Models: Read response 1:", read_response_1)
 
     read_response_2 = models.read( # All combinations under an experiment
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1
     )
     print("Models: Read response 2:", read_response_2)
 
     read_response_3 = models.read( # All combinations under a project
+        collab_id=collab_id,
         project_id=project_id
     )
     print("Models: Read response 3:", read_response_3)
 
     # Clean up
-    projects.delete(project_id=project_id)
+    collaborations.delete(collab_id=collab_id)

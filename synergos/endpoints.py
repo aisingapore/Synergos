@@ -27,71 +27,74 @@ evaluate_prefix = "$address/ttp/evaluate"
 
 # Phase 1: Connection -> /ttp/connect/
 
+class COLLABORATION_ENDPOINTS:
+    COLLABORATIONS = Template(f"{connect_prefix}/collaborations")
+    COLLABORATION = Template(f"{connect_prefix}/collaborations/$collab_id")
+
+
 class PROJECT_ENDPOINTS:
-    PROJECTS = Template(f"{connect_prefix}/projects")
-    PROJECT = Template(f"{connect_prefix}/projects/$project_id")
-    REGISTERED_PARTICIPANTS = Template(f"{connect_prefix}/projects/$project_id/participants")
-    REGISTERED_PARTICIPANT = Template(f"{connect_prefix}/projects/$project_id/participants/$participant_id")
+    PROJECTS = Template(f"{connect_prefix}/collaborations/$collab_id/projects")
+    PROJECT = Template(f"{connect_prefix}/collaborations/$collab_id/projects/$project_id")
 
 
 class EXPERIMENT_ENDPOINTS:
-    EXPERIMENTS = Template(f"{connect_prefix}/projects/$project_id/experiments")
-    EXPERIMENT = Template(f"{connect_prefix}/projects/$project_id/experiments/$expt_id")
+    EXPERIMENTS = Template(f"{connect_prefix}/collaborations/$collab_id/projects/$project_id/experiments")
+    EXPERIMENT = Template(f"{connect_prefix}/collaborations/$collab_id/projects/$project_id/experiments/$expt_id")
 
 
 class RUN_ENDPOINTS:
-    RUNS = Template(f"{connect_prefix}/projects/$project_id/experiments/$expt_id/runs")
-    RUN = Template(f"{connect_prefix}/projects/$project_id/experiments/$expt_id/runs/$run_id")
+    RUNS = Template(f"{connect_prefix}/collaborations/$collab_id/projects/$project_id/experiments/$expt_id/runs")
+    RUN = Template(f"{connect_prefix}/collaborations/$collab_id/projects/$project_id/experiments/$expt_id/runs/$run_id")
 
 
 class PARTICIPANT_ENDPOINTS:
     PARTICIPANTS = Template(f"{connect_prefix}/participants")
     PARTICIPANT = Template(f"{connect_prefix}/participants/$participant_id")
-    REGISTERED_PROJECTS = Template(f"{connect_prefix}/participants/$participant_id/projects")
-    REGISTERED_PROJECT = Template(f"{connect_prefix}/participants/$participant_id/projects/$project_id")
 
 
 class REGISTRATION_ENDPOINTS:
-    PROJECT_REGISTRATIONS = Template(f"{connect_prefix}/projects/$project_id/registrations")
     PARTICIPANT_REGISTRATIONS = Template(f"{connect_prefix}/participants/$participant_id/registrations")
-    REGISTRATION = Template(f"{connect_prefix}/projects/$project_id/participants/$participant_id/registration")
+    PARTICIPANT_COLLAB_REGISTRATIONS = Template(f"{connect_prefix}/participants/$participant_id/collaborations/$collab_id/registrations")
+    COLLABORATION_REGISTRATIONS = Template(f"{connect_prefix}/collaborations/$collab_id/registrations")
+    PROJECT_REGISTRATIONS = Template(f"{connect_prefix}/collaborations/$collab_id/projects/$project_id/registrations")
+    REGISTRATION = Template(f"{connect_prefix}/collaborations/$collab_id/projects/$project_id/participants/$participant_id/registration")
 
 
 class TAG_ENDPOINTS:
-    TAGS = Template(f"{connect_prefix}/projects/$project_id/participants/$participant_id/registration/tags")
+    TAGS = Template(f"{connect_prefix}/collaborations/$collab_id/projects/$project_id/participants/$participant_id/registration/tags")
 
 
 # Phase 2: Training -> /ttp/train/
 
 class ALIGNMENT_ENDPOINTS:
-    ALIGNMENTS = Template(f"{train_prefix}/projects/$project_id/alignments")
+    ALIGNMENTS = Template(f"{train_prefix}/collaborations/$collab_id/projects/$project_id/alignments")
 
 
 class MODEL_ENDPOINTS:
-    PROJECT_COMBINATIONS = Template(f"{train_prefix}/projects/$project_id/models")
-    EXPERIMENT_COMBINATIONS = Template(f"{train_prefix}/projects/$project_id/models/$expt_id")
-    RUN_COMBINATION = Template(f"{train_prefix}/projects/$project_id/models/$expt_id/$run_id")
+    PROJECT_COMBINATIONS = Template(f"{train_prefix}/collaborations/$collab_id/projects/$project_id/models")
+    EXPERIMENT_COMBINATIONS = Template(f"{train_prefix}/collaborations/$collab_id/projects/$project_id/models/$expt_id")
+    RUN_COMBINATION = Template(f"{train_prefix}/collaborations/$collab_id/projects/$project_id/models/$expt_id/$run_id")
 
 
 class OPTIMIZATION_ENDPOINTS:
-    OPTIMIZATIONS = Template(f"{train_prefix}/projects/$project_id/models/$expt_id/optimizations/")
+    OPTIMIZATIONS = Template(f"{train_prefix}/collaborations/$collab_id/projects/$project_id/models/$expt_id/optimizations/")
 
 
 # Phase 3: Training -> /ttp/evaluate/
 
 class VALIDATION_ENDPOINTS:
-    PROJECT_COMBINATIONS = Template(f"{evaluate_prefix}/projects/$project_id/validations")
-    EXPERIMENT_COMBINATIONS = Template(f"{evaluate_prefix}/projects/$project_id/validations/$expt_id")
-    RUN_COMBINATIONS = Template(f"{evaluate_prefix}/projects/$project_id/validations/$expt_id/$run_id")
-    PARTICIPANT_COMBINATION = Template(f"{evaluate_prefix}/projects/$project_id/validations/$expt_id/$run_id/$participant_id")
+    PROJECT_COMBINATIONS = Template(f"{evaluate_prefix}/collaborations/$collab_id/projects/$project_id/validations")
+    EXPERIMENT_COMBINATIONS = Template(f"{evaluate_prefix}/collaborations/$collab_id/projects/$project_id/validations/$expt_id")
+    RUN_COMBINATIONS = Template(f"{evaluate_prefix}/collaborations/$collab_id/projects/$project_id/validations/$expt_id/$run_id")
+    PARTICIPANT_COMBINATION = Template(f"{evaluate_prefix}/collaborations/$collab_id/projects/$project_id/validations/$expt_id/$run_id/$participant_id")
 
 
 class PREDICTION_ENDPOINTS:
     # Participant intialised inference (ONLY for Horizontal FL)
-    PARTICIPANT_COMBINATIONS = Template(f"{evaluate_prefix}/participants/$participant_id/predictions")
-    PROJECT_COMBINATIONS = Template(f"{evaluate_prefix}/participants/$participant_id/predictions/$project_id")
-    EXPERIMENT_COMBINATIONS = Template(f"{evaluate_prefix}/participants/$participant_id/predictions/$project_id/$expt_id")
-    RUN_COMBINATION = Template(f"{evaluate_prefix}/participants/$participant_id/predictions/$project_id/$expt_id/$run_id")
+    PARTICIPANT_COMBINATIONS = Template(f"{evaluate_prefix}/participants/$participant_id/collaborations/$collab_id/predictions")
+    PROJECT_COMBINATIONS = Template(f"{evaluate_prefix}/participants/$participant_id/collaborations/$collab_id/predictions/$project_id")
+    EXPERIMENT_COMBINATIONS = Template(f"{evaluate_prefix}/participants/$participant_id/collaborations/$collab_id/predictions/$project_id/$expt_id")
+    RUN_COMBINATION = Template(f"{evaluate_prefix}/participants/$participant_id/collaborations/$collab_id/predictions/$project_id/$expt_id/$run_id")
 
 #########
 # Tests #
