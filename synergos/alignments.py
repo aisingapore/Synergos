@@ -68,6 +68,7 @@ class AlignmentTask(BaseTask):
             specific project in the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             **kwargs
         Returns:
@@ -85,6 +86,7 @@ class AlignmentTask(BaseTask):
             in the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
         Returns:
 

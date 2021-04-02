@@ -107,6 +107,7 @@ class ModelTask(BaseTask):
             specific project in the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
@@ -148,6 +149,7 @@ class ModelTask(BaseTask):
             in the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run

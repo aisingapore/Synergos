@@ -169,7 +169,7 @@ class CollaborationTask(BaseTask):
             in the federated grid
 
         Returns:
-
+            Bulk collaboration payload
         """
         return self._execute_operation(
             operation="get",

@@ -123,6 +123,7 @@ class PredictionTask(BaseTask):
         Args:
             tags (dict): File tokens tags declared for inference 
             participant_id (str): Identifier of participant
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
@@ -164,6 +165,7 @@ class PredictionTask(BaseTask):
 
         Args:
             participant_id (str): Identifier of participant
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
