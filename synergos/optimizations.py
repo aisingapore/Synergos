@@ -52,9 +52,15 @@ class OptimizationTask(BaseTask):
     # Helpers #
     ###########
 
-    def _generate_url(self, project_id: str, expt_id: str) -> str:
+    def _generate_url(
+        self, 
+        collab_id: str, 
+        project_id: str, 
+        expt_id: str
+    ) -> str:
         return super()._generate_url(
             endpoint=self.endpoints.OPTIMIZATIONS,
+            collab_id=collab_id,
             project_id=project_id,
             expt_id=expt_id
         )
@@ -66,6 +72,7 @@ class OptimizationTask(BaseTask):
 
     def create(
         self, 
+        collab_id: str,
         project_id: str,
         expt_id: str,
         search_space: Dict[str, Dict[str, Union[str, bool, int, float]]],
@@ -77,6 +84,7 @@ class OptimizationTask(BaseTask):
         max_trial_num: int = 10,
         is_remote: bool = True,
         use_annotation: bool = True,
+        auto_align: bool = True,
         dockerised: bool = True,
         verbose: bool = True,
         log_msgs: bool = True,
@@ -86,6 +94,7 @@ class OptimizationTask(BaseTask):
             specific project in the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
@@ -106,6 +115,7 @@ class OptimizationTask(BaseTask):
             'max_trial_num': max_trial_num,
             'is_remote': is_remote,
             'use_annotation': use_annotation,
+            'auto_align': auto_align,
             'dockerised': dockerised,
             'verbose': verbose,
             'log_msgs': log_msgs
@@ -114,6 +124,7 @@ class OptimizationTask(BaseTask):
         return self._execute_operation(
             operation="post",
             url=self._generate_url(
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id
             ),
@@ -121,11 +132,12 @@ class OptimizationTask(BaseTask):
         )
 
 
-    def read(self, project_id: str, expt_id: str):
+    def read(self, collab_id: str, project_id: str, expt_id: str):
         """ Retrieves a single set of tags' information/configurations created
             in the federated grid
 
         Args:
+            collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
@@ -135,6 +147,7 @@ class OptimizationTask(BaseTask):
         return self._execute_operation(
             operation="get",
             url=self._generate_url(
+                collab_id=collab_id,
                 project_id=project_id,
                 expt_id=expt_id
             ),
@@ -147,6 +160,7 @@ if __name__ == "__main__":
     port = 5000
     address = f"http://{host}:{port}"
 
+    from .collaborations import CollaborationTask
     from .projects import ProjectTask
     from .experiments import ExperimentTask
     from .runs import RunTask
@@ -158,10 +172,16 @@ if __name__ == "__main__":
     from .validations import ValidationTask
     from .predictions import PredictionTask
     
+    # Create a reference collaboration
+    collaborations = CollaborationTask(address)
+    collab_id = "test_collab"
+    collaborations.create(collab_id=collab_id)
+
     # Create reference project
     projects = ProjectTask(address)
     project_id = "test_project"
     projects.create(
+        collab_id=collab_id,
         project_id=project_id, 
         action="classify",
         incentives={
@@ -176,6 +196,7 @@ if __name__ == "__main__":
     expt_id_2 = "test_expt_2"
 
     experiments.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
         model=[
@@ -193,6 +214,7 @@ if __name__ == "__main__":
     )
 
     experiments.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         model=[
@@ -257,6 +279,7 @@ if __name__ == "__main__":
         'max_lr': 0.001
     }
     runs.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
         run_id=run_id_1,
@@ -264,6 +287,7 @@ if __name__ == "__main__":
     )
 
     runs.create( # Use default parameter set on model 1
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
         run_id=run_id_2,
@@ -275,6 +299,7 @@ if __name__ == "__main__":
     ) 
 
     runs.create( # Use default parameter set on model 2
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_2,
         run_id=run_id_2,
@@ -290,33 +315,38 @@ if __name__ == "__main__":
     participant_id_1 = "test_participant_1"
     participant_id_2 = "test_participant_2"
 
-    parameter_set_1 = {
+    parameter_set_1 = {}
+    participants.create(participant_id=participant_id_1, **parameter_set_1)
+
+    parameter_set_2 = {}
+    participants.create(participant_id=participant_id_2, **parameter_set_2)  
+
+    # Create reference registrations
+    registrations = RegistrationTask(address)
+    
+    registrations.add_node(**{
         'host': '172.17.0.2',
         'port': 8020,
         'f_port': 5000,
         'log_msgs': True,
         'verbose': True
-    }
-    participants.create(participant_id=participant_id_1, **parameter_set_1)
-
-    parameter_set_2 = {
-        'host': '172.17.0.3',
-        'port': 8020,
-        'f_port': 5000,
-        'log_msgs': True,
-        'verbose': True
-    }
-    participants.create(participant_id=participant_id_2, **parameter_set_2)  
-
-    # Create reference registrations
-    registrations = RegistrationTask(address)
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
         role='host'
     )
 
+    registrations.add_node(**{
+        'host': '172.17.0.3',
+        'port': 8020,
+        'f_port': 5000,
+        'log_msgs': True,
+        'verbose': True
+    })
     registrations.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
         role='guest'
@@ -325,93 +355,76 @@ if __name__ == "__main__":
     # Create reference tags
     tags = TagTask(address)
     tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_1,
-        train=[
-            ["non_iid_1"], 
-            ["edge_test_missing_coecerable_vals"],
-            ["edge_test_misalign"],
-            ["edge_test_na_slices"]
-        ],
-        evaluate=[["iid_1"]]
+        train=[["tabular", "abalone", "data1", "train"]],
+        evaluate=[["tabular", "abalone", "data1", "evaluate"]]
     )
 
     tags.create(
+        collab_id=collab_id,
         project_id=project_id,
         participant_id=participant_id_2,
-        train=[["non_iid_2"]]
+        train=[["tabular", "abalone", "data2", "train"]],
+        evaluate=[["tabular", "abalone", "data2", "evaluate"]]
     )
 
     # Create reference alignments
     alignments = AlignmentTask(address)
-    alignments.create(project_id=project_id)
+    alignments.create(collab_id=collab_id, project_id=project_id)
 
-    # Create reference model(s)
-    models = ModelTask(address)
-    models.create( # All combinations under a project
-        project_id=project_id,
-        expt_id=expt_id_1,
-        # run_id=run_id_1
-    )
-
-    # optimizations = OptimizationTask(address)
-
-    # # Test optimization creation
-    # optim_parameters = {
-    #     'search_space': {
-    #         "batch_size": {"_type":"choice", "_value": [64, 128]},
-    #         "rounds":{"_type":"choice","_value":[3, 4]},
-    #         "lr":{"_type":"choice","_value":[0.0001, 0.1]},
-    #         "criterion":{"_type":"choice","_value":["NLLLoss"]},
-    #         "mu":{"_type":"uniform","_value":[0.0, 1.0]},
-    #         "base_lr":{"_type":"choice","_value":[0.00005]},
-    #         "max_lr":{"_type":"choice","_value":[0.2]}
-    #     },
-    #     'tuner': "TPE",
-    #     'metric': "accuracy",
-    #     'optimize_mode': "maximize",
-    #     'trial_concurrency': 1,
-    #     'max_exec_duration': "1h",
-    #     'max_trial_num': 10,
-    #     'is_remote': True,
-    #     'use_annotation': True,
-    #     'dockerised': True,
-    #     'verbose': True,
-    #     'log_msgs': True
-    # }
-    # create_response = optimizations.create(
+    # # Create reference model(s)
+    # models = ModelTask(address)
+    # models.create( # All combinations under a project
+    #     collab_id=collab_id,
     #     project_id=project_id,
     #     expt_id=expt_id_1,
-    #     **optim_parameters
+    #     run_id=run_id_1
     # )
-    # print(f"Optimization: Create response: {create_response}")
 
-    # # Test optimization creation
-    # read_response = optimizations.read(
-    #     project_id=project_id, 
-    #     expt_id=expt_id_1
-    # )
-    # print(f"Optimization: Read response: {read_response}")
+    optimizations = OptimizationTask(address)
 
-    # Perform validation(s)
-    validations = ValidationTask(address)
-    valid_resp = validations.create(
+    # Test optimization creation
+    optim_parameters = {
+        'search_space': {
+            "rounds": {"_type":"choice","_value":[1, 2]},
+            "epochs": {"_type":"choice","_value":[1, 2]},
+            "batch_size": {"_type":"choice", "_value": [256, 512]},
+            "lr":{"_type":"choice","_value":[0.0001, 0.1]},
+            "criterion":{"_type":"choice","_value":["NLLLoss"]},
+            "mu":{"_type":"uniform","_value":[0.0, 1.0]},
+            "base_lr":{"_type":"choice","_value":[0.00005]},
+            "max_lr":{"_type":"choice","_value":[0.2]}
+        },
+        'tuner': "TPE",
+        'metric': "accuracy",
+        'optimize_mode': "maximize",
+        'trial_concurrency': 1,
+        'max_exec_duration': "1h",
+        'max_trial_num': 10,
+        'is_remote': True,
+        'use_annotation': True,
+        'auto_align': True,
+        'dockerised': True,
+        'verbose': True,
+        'log_msgs': True
+    }
+    create_response = optimizations.create(
+        collab_id=collab_id,
         project_id=project_id,
         expt_id=expt_id_1,
-        # run_id=run_id_1
+        **optim_parameters
     )
-    print(f"Validation response: {valid_resp}")
+    print(f"Optimization: Create response: {create_response}")
 
-    # Perform prediction(s)
-    predictions = PredictionTask(address)
-    pred_resp = predictions.create(
-        tags={"test_project": [["iid_1"]]},
-        participant_id=participant_id_1,
-        project_id=project_id,
-        expt_id=expt_id_1,
-        # run_id=run_id_1
+    # Test optimization creation
+    read_response = optimizations.read(
+        collab_id=collab_id,
+        project_id=project_id, 
+        expt_id=expt_id_1
     )
-    print(f"Prediction response: {pred_resp}")
+    print(f"Optimization: Read response: {read_response}")
 
     # Clean up
-    projects.delete(project_id=project_id)
+    collaborations.delete(collab_id=collab_id)

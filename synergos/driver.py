@@ -92,9 +92,9 @@ class Driver:
     def models(self):
         return ModelTask(address=self.address)
 
-    # @property
-    # def optimizations(self):
-    #     return OptimizationTask(address=self.address)
+    @property
+    def optimizations(self):
+        return OptimizationTask(address=self.address)
 
     @property
     def validations(self):
