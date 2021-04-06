@@ -76,7 +76,7 @@ class OptimizationTask(BaseTask):
         project_id: str,
         expt_id: str,
         search_space: Dict[str, Dict[str, Union[str, bool, int, float]]],
-        tuner: str,
+        # tuner: str,
         metric: str,
         optimize_mode: str,
         trial_concurrency: int = 1,
@@ -107,7 +107,7 @@ class OptimizationTask(BaseTask):
         """
         parameters = {
             'search_space': search_space,
-            'tuner': tuner,
+            # 'tuner': tuner,
             'metric': metric,
             'optimize_mode': optimize_mode,
             'trial_concurrency': trial_concurrency,
@@ -118,7 +118,8 @@ class OptimizationTask(BaseTask):
             'auto_align': auto_align,
             'dockerised': dockerised,
             'verbose': verbose,
-            'log_msgs': log_msgs
+            'log_msgs': log_msgs,
+            **kwargs
         }
 
         return self._execute_operation(
@@ -390,19 +391,22 @@ if __name__ == "__main__":
         'search_space': {
             "rounds": {"_type":"choice","_value":[1, 2]},
             "epochs": {"_type":"choice","_value":[1, 2]},
-            "batch_size": {"_type":"choice", "_value": [256, 512]},
+            "batch_size": {"_type":"choice", "_value": [450, 512]},
             "lr":{"_type":"choice","_value":[0.0001, 0.1]},
             "criterion":{"_type":"choice","_value":["NLLLoss"]},
             "mu":{"_type":"uniform","_value":[0.0, 1.0]},
             "base_lr":{"_type":"choice","_value":[0.00005]},
             "max_lr":{"_type":"choice","_value":[0.2]}
         },
-        'tuner': "TPE",
+        'backend': "tune",
+        'scheduler': "ASHAScheduler",
+        'searcher': "TuneBOHB",
+        'optimize_mode': "max",
         'metric': "accuracy",
-        'optimize_mode': "maximize",
         'trial_concurrency': 1,
         'max_exec_duration': "1h",
         'max_trial_num': 10,
+        'max_concurrent': 1,
         'is_remote': True,
         'use_annotation': True,
         'auto_align': True,
