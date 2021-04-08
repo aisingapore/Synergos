@@ -111,7 +111,7 @@ class ModelTask(BaseTask):
             project_id (str): Identifier of project
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
-            auto_align (bool): Toggles if multiple feature alignments will be used
+            auto_align (bool): Toggles if dynamic alignment will be applied
             dockerised (bool): Toggles if orchestrations are dockerised
             log_msgs (bool): Toggles if computation operations should be logged
             verbose (bool): Toggles verbosity of computation logging
@@ -120,10 +120,10 @@ class ModelTask(BaseTask):
             
         """
         parameters = {
-            "auto_align": auto_align,
-            "dockerised": dockerised,
-            "verbose": verbose,
-            "log_msgs": log_msgs
+            'auto_align': auto_align,
+            'dockerised': dockerised,
+            'verbose': verbose,
+            'log_msgs': log_msgs
         }
 
         return self._execute_operation(

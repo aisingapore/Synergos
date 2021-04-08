@@ -63,21 +63,32 @@ class AlignmentTask(BaseTask):
     # Core functions #
     ##################
 
-    def create(self, collab_id: str, project_id: str, **kwargs):
+    def create(
+        self, 
+        collab_id: str, 
+        project_id: str,
+        auto_align: bool = True,
+        auto_fix: bool = True,
+        **kwargs
+    ):
         """ Triggers multiple feature alignment for the participant under a 
             specific project in the federated grid
 
         Args:
             collab_id (str): Identifier of collaboration
             project_id (str): Identifier of project
+            auto_align (bool): Toggles if dynamic alignment will be applied
+            auto_fix (bool): Toggles if dynamic model augmentation will be applied
             **kwargs
         Returns:
             
         """
+        parameters = {"auto_align": auto_align, 'auto_fix': auto_fix}
+
         return self._execute_operation(
             operation="post",
             url=self._generate_url(collab_id=collab_id, project_id=project_id),
-            payload=None
+            payload=parameters
         )
 
 

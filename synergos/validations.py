@@ -125,7 +125,7 @@ class ValidationTask(BaseTask):
             expt_id (str): Identifier of experiment run is under
             run_id (str): Identifier of run
             participant_id (str): Identifier of participant
-            auto_align (bool): Toggles if multiple feature alignments will be used
+            auto_align (bool): Toggles if dynamic alignment will be applied
             dockerised (bool): Toggles if orchestrations are dockerised
             log_msgs (bool): Toggles if computation operations should be logged
             verbose (bool): Toggles verbosity of computation logging
