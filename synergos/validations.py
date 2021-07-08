@@ -112,8 +112,8 @@ class ValidationTask(BaseTask):
         participant_id: str = None,
         auto_align: bool = True,
         dockerised: bool = True,
-        verbose: bool = True,
-        log_msgs: bool = True,
+        verbose: bool = False,
+        log_msgs: bool = False,
         **kwargs
     ):
         """ Triggers multiple feature alignment for the participant under a 

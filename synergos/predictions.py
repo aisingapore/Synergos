@@ -115,6 +115,8 @@ class PredictionTask(BaseTask):
         run_id: str = None,
         auto_align: bool = True,
         dockerised: bool = True,
+        verbose: bool = False,
+        log_msgs: bool = False,
         **kwargs
     ):
         """ Triggers multiple feature alignment for the participant under a 
@@ -136,6 +138,8 @@ class PredictionTask(BaseTask):
         parameters = {
             "auto_align": auto_align,
             "dockerised": dockerised,
+            "verbose": verbose,
+            "log_msgs": log_msgs,
             "tags": tags
         }
 

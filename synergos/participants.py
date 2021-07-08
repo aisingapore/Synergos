@@ -5,8 +5,7 @@
 ####################
 
 # Generic/Built-in
-import logging
-from typing import Dict
+from typing import Dict, List
 
 # Libs
 
@@ -58,7 +57,16 @@ class ParticipantTask(BaseTask):
     # Core functions #
     ##################
 
-    def create(self, participant_id: str, **kwargs):
+    def create(
+        self, 
+        participant_id: str, 
+        category: List[str] = [],
+        summary: str = "",
+        phone: int = None,
+        email: str = None,
+        socials: Dict[str, str] = {},
+        **kwargs
+    ):
         """ Registers a participant in the federated grid
 
         Args:
@@ -67,7 +75,14 @@ class ParticipantTask(BaseTask):
         Returns:
             
         """
-        parameters = {'id': participant_id}
+        parameters = {
+            'id': participant_id,
+            'category': category,
+            'summary': summary,
+            'phone': phone,
+            'email': email,
+            'socials': socials
+        }
 
         return self._execute_operation(
             operation="post",

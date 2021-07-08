@@ -12,6 +12,7 @@
 
 # Custom
 from .driver import Driver
+from .collaborations import CollaborationTask
 from .projects import ProjectTask
 from .experiments import ExperimentTask
 from .runs import RunTask
