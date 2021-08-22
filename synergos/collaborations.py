@@ -5,8 +5,7 @@
 ####################
 
 # Generic/Built-in
-import logging
-from typing import Dict, Union
+from typing import Dict, Union, Any
 
 # Libs
 
@@ -40,25 +39,44 @@ class CollaborationTask(BaseTask):
             address=address,
             endpoints=COLLABORATION_ENDPOINTS
         )
-        
-        self._catalogue_metadata = {}
-        self._logger_metadata = {}
-        self._meter_metadata = {}
-        self._mlops_metadata = {}
-        self._mq_metadata = {}
-        self._ui_metadata = {}
+        self._reset_cache()
 
     
     ###########
     # Setters #
     ###########
 
-    def configure_catalogue(self, host: str, port: str) -> Dict[str, Union[int, str]]:
-        """
+    def _reset_cache(self):
+        """ Initialises a blank state of a collaboration """
+        self._catalogue_metadata = {}
+        self._logger_metadata = {}
+        self._meter_metadata = {}
+        self._mlops_metadata = {}
+        self._mq_metadata = {}
+
+
+    def configure_catalogue(
+        self, 
+        host: str, 
+        port: int,
+        ui_port: int = 0,
+        secure: bool = False
+    ) -> Dict[str, Union[str, bool, Dict[str, int]]]:
+        """ Declares & formats connection inforamation required to access a 
+            deployed Synergos Catalogue instance
+
+        Args:
+            host (str): IP address/alias which Synergos Catalogue is hosted on
+            port (int): Main interfacing port used for backend interactions
+            ui_port (int): Port at which UI is hosted on
+            secure (bool): Whether deployed component is secured (eg. TLS)
+        Returns:
+            Catalogue specific metadata (dict)
         """
         self._catalogue_metadata.update({
-            'catalogue_host': host,
-            'catalogue_port': port
+            'host': host,
+            'ports': {'main': port, 'ui': ui_port},
+            'secure': secure
         })
         return self._catalogue_metadata
 
@@ -66,51 +84,124 @@ class CollaborationTask(BaseTask):
     def configure_logger(
         self, 
         host: str,
+        port: int,
         sysmetrics_port: int,
         director_port: int,
         ttp_port: int,
-        worker_port: int
-    ):
-        """
+        worker_port: int,
+        ui_port: int = 0,
+        secure: bool = False
+    ) -> Dict[str, Union[str, bool, Dict[str, int]]]:
+        """ Declares & formats connection inforamation required to access a 
+            deployed Synergos Logger instance
+
+        Args:
+            host (str): IP address/alias which Synergos Logger is hosted on
+            port (int): Main interfacing port used for backend interactions
+            sysmetrics_port (int): Port listening for distributed system metrics
+            director_port (int): Port listening for distributed director logs
+            ttp_port (int): Port listening for distributed TTP logs
+            worker_port (int): Port listening for distributed worker logs
+            ui_port (int): Port at which Synergos Logger UI is hosted on
+            secure (bool): Whether deployed component is secured (eg. TLS)
+        Returns:
+            Logger specific metadata (dict)
         """
         self._logger_metadata.update({
-            'logger_host': host,
-            'logger_ports': {
+            'host': host,
+            'ports': {
+
+                # Primary ports for interaction
+                'main': port,    
+                'ui': ui_port,
+
+                # Backend ports for partitioning incoming logs explicitly
                 'sysmetrics': sysmetrics_port,
                 'director': director_port,
                 'ttp': ttp_port,
                 'worker': worker_port
-            }
+            },
+            'secure': secure
         })
         return self._logger_metadata
 
 
-    def configure_meter(self, host: str, port: str) -> Dict[str, Union[int, str]]:
+    def configure_meter(
+        self, 
+        host: str, 
+        port: int,
+        ui_port: int = 0,
+        secure: bool = False
+    ) -> Dict[str, Union[str, bool, Dict[str, int]]]:
+        """ Declares & formats connection inforamation required to access a 
+            deployed Synergos Meter instance
+
+        Args:
+            host (str): IP address/alias which Synergos Meter is hosted on
+            port (int): Main interfacing port used for backend interactions
+            ui_port (int): Port at which UI is hosted on
+            secure (bool): Whether deployed component is secured (eg. TLS)
+        Returns:
+            Meter specific metadata (dict)
         """
-        """
-        self._meter_metadata.update({'meter_host': host, 'meter_port': port})
+        self._meter_metadata.update({
+            'host': host, 
+            'ports': {'main': port, 'ui': ui_port},
+            'secure': secure
+        })
         return self._meter_metadata
 
 
-    def configure_mlops(self, host: str, port: str) -> Dict[str, Union[int, str]]:
+    def configure_mlops(
+        self, 
+        host: str, 
+        port: str,
+        ui_port: int = 0,
+        secure: bool = False
+    ) -> Dict[str, Union[str, bool, Dict[str, int]]]:
+        """ Declares & formats connection inforamation required to access a 
+            deployed Synergos MLOps instance
+
+        Args:
+            host (str): IP address/alias which Synergos MLOps is hosted on
+            port (int): Main interfacing port used for backend interactions
+            ui_port (int): Port at which UI is hosted on
+            secure (bool): Whether deployed component is secured (eg. TLS)
+        Returns:
+            MLOps specific metadata (dict)
         """
-        """
-        self._mlops_metadata.update({'mlops_host': host, 'mlops_port': port})
+        self._mlops_metadata.update({
+            'host': host,
+            'ports': {'main': port, 'ui': ui_port},
+            'secure': secure
+        })
         return self._mlops_metadata
 
 
-    def configure_mq(self, host: str, port: str) -> Dict[str, Union[int, str]]:
+    def configure_mq(
+        self, 
+        host: str, 
+        port: str,
+        ui_port: int = 0,
+        secure: bool = False
+    ) -> Dict[str, Union[str, bool, Dict[str, int]]]:
+        """ Declares & formats connection inforamation required to access a 
+            deployed Synergos MQ (i.e. message queue) instance
+
+        Args:
+            host (str): IP address/alias which Synergos MQ is hosted on
+            port (int): Main interfacing port used for backend interactions
+            ui_port (int): Port at which UI is hosted on
+            secure (bool): Whether deployed component is secured (eg. TLS)
+        Returns:
+            MQ specific metadata (dict)
         """
-        """
-        self._mq_metadata.update({'mq_host': host, 'mq_port': port})
+        self._mq_metadata.update({
+            'host': host, 
+            'ports': {'main': port, 'ui': ui_port},
+            'secure': secure
+        })
         return self._mq_metadata
-
-
-    def configure_ui(self, host: str, port: str) -> Dict[str, Union[int, str]]:
-        """
-        """
-        self._ui_metadata.update({'ui_host': host, 'ui_port': port})
-        return self._ui_metadata
 
     ###########
     # Helpers #
@@ -128,16 +219,21 @@ class CollaborationTask(BaseTask):
 
 
     def _compile_configurations(self) -> Dict[str, Union[str, int, dict]]:
-        """
+        """ Compiles all declared component metadata into a single entry
+            ready for submission to Synergos REST
+
+        Returns:
+            Compiled configurations (dict)
         """
         configurations = {
-            **self._catalogue_metadata,
-            **self._logger_metadata,
-            **self._meter_metadata,
-            **self._mlops_metadata,
-            **self._mq_metadata,
-            **self._ui_metadata
+            'catalogue': self._catalogue_metadata,
+            'logs': self._logger_metadata,
+            'meter': self._meter_metadata,
+            'mlops': self._mlops_metadata,
+            'mq': self._mq_metadata
         }
+
+        print(configurations)
         return configurations
 
 
@@ -145,31 +241,32 @@ class CollaborationTask(BaseTask):
     # Core functions #
     ##################
 
-    def create(self, collab_id: str, **kwargs):
+    def create(self, collab_id: str, **kwargs) -> Dict[str, Any]:
         """ Registers a collaboration in the federated grid.
 
         Args:
             collab_id (str): Identifier of collaboration
             **kwargs
         Returns:
-            Collaboration entry
+            Collaboration record (dict)
         """
         configurations = self._compile_configurations()
         parameters = {'collab_id': collab_id, **configurations, **kwargs}
-
-        return self._execute_operation(
+        create_resp = self._execute_operation(
             operation="post",
             url=self._generate_bulk_url(),
             payload=parameters
         )
+        self._reset_cache() # Must be resetted here to prevent carry over!
+        return create_resp
 
     
-    def read_all(self):
+    def read_all(self) -> Dict[str, Any]:
         """ Retrieves information/configurations of all collaborations created 
             in the federated grid
 
         Returns:
-            Bulk collaboration payload
+            Bulk collaboration payload (dict)
         """
         return self._execute_operation(
             operation="get",
@@ -178,14 +275,14 @@ class CollaborationTask(BaseTask):
         )
 
 
-    def read(self, collab_id: str):
+    def read(self, collab_id: str) -> Dict[str, Any]:
         """ Retrieves a single collaboration's information/configurations 
             created in the federated grid
 
         Args:
             collab_id (str): Identifier of collaboration
         Returns:
-
+            A single collaboration record (dict)
         """
         return self._execute_operation(
             operation="get",
@@ -194,7 +291,7 @@ class CollaborationTask(BaseTask):
         )
     
     
-    def update(self, collab_id: str, **updates):
+    def update(self, collab_id: str, **updates) -> Dict[str, Any]:
         """ Updates a collaboration's information/configurations created in the 
             federated grid
         
@@ -202,26 +299,51 @@ class CollaborationTask(BaseTask):
             collab_id (str): Identifier of collaboration
             **updates: Keyword pairs of parameters to be updated
         Returns:
-
+            Updated collaboration record (dict)
         """
-        configurations = self._compile_configurations()
+        ###########################
+        # Implementation Footnote #
+        ###########################
+
+        # [Cause]
+        # To allow new component registration, a component's metadata needs to 
+        # be declared & assembled on the client's machine first, before sending
+        # it out to the orchestrating node.
+
+        # [Problems]
+        # This results in possible state alignment issues. For example, after
+        # a series of nodes have been submitted to the orchestrator, the client
+        # may face issues where previously cached attributes unintentionally
+        # override the current values!
+
+        # [Solution]
+        # Instead of implementing custom state alignment code, only accept
+        # non-default (i.e. no empty declarations) updates.
+
+        configurations = {
+            k:v 
+            for k,v in self._compile_configurations().items() 
+            if v
+        }
         updated_parameters = {**configurations, **updates}
 
-        return self._execute_operation(
+        update_resp = self._execute_operation(
             operation="put",
             url=self._generate_single_url(collab_id=collab_id),
             payload=updated_parameters
         )
+        self._reset_cache() # Must be resetted here to prevent carry over!
+        return update_resp
 
     
-    def delete(self, collab_id: str):
+    def delete(self, collab_id: str) -> Dict[str, Any]:
         """ Removes a collaboration's information/configurations previously 
             created from the federated grid
 
         Args:
             collab_id (str): Identifier of collaboration
         Returns:
-
+            Deleted collaboration record (dict)
         """
         return self._execute_operation(
             operation="delete",
@@ -232,7 +354,7 @@ class CollaborationTask(BaseTask):
 
 if __name__ == "__main__":
     host = "0.0.0.0"
-    port = 5000
+    port = 5001
     address = f"http://{host}:{port}"
 
     collaborations = CollaborationTask(address)
@@ -245,10 +367,13 @@ if __name__ == "__main__":
 
     collaborations.configure_logger(
         host="111.222.333.444",
+        port=9000,
         sysmetrics_port=9100,
         director_port=9200,
         ttp_port=9300,
-        worker_port=9400
+        worker_port=9400,
+        ui_port=9000,
+        secure=True
     )
     create_response_2 = collaborations.create(collab_id=collab_id_2)
     print("Collaboration 2: Create response:", create_response_2)
@@ -265,18 +390,22 @@ if __name__ == "__main__":
     print("Collaboration 2: Read response:", read_response_2)
 
     # Test collaboration update
-    update_response_1 = collaborations.update(
-        collab_id=collab_id_1, 
-        mlops_host="222.222.222.222", 
-        mlops_port=9876
+    collaborations.configure_mlops(
+        host="222.222.222.222",
+        port=9876,
+        ui_port=9877,
+        secure=False
     )
+    update_response_1 = collaborations.update(collab_id=collab_id_1)
     print("Collaboration 1: Update response:", update_response_1)
 
-    update_response_2 = collaborations.update(
-        collab_id=collab_id_2,
-        meter_host="333.333.333.333", 
-        meter_port=15790
+    collaborations.configure_meter(
+        host="333.333.333.333",
+        port=15790,
+        ui_port=15791,
+        secure=True
     )
+    update_response_2 = collaborations.update(collab_id=collab_id_2)
     print("Collaboration 2: Update response:", update_response_2)
 
     # Test collaboration deletion
