@@ -10,22 +10,27 @@ driver = Driver(host=host, port=port)
 # Phase 1: CONNECT - Submitting TTP & Participant metadata #
 ############################################################
 
-# 1A. TTP controller creates a project
+# 1A. TTP creates a collaboration
+
+collab_task = driver.collaborations
+collab_task.create('test_collaboration')
+
+# 1B. TTP controller creates a project
 
 driver.projects.create(
+    collab_id="test_collaboration",
     project_id="test_project",
     action="classify",
     incentives={
         'tier_1': [],
         'tier_2': [],
-        'tier_3': []
     }
 )
 
-
-# 1B. TTP controller creates an experiment
+# 1C. TTP controller creates an experiment
 
 driver.experiments.create(
+    collab_id="test_collaboration",
     project_id="test_project",
     expt_id="test_experiment",
     model = [
@@ -63,9 +68,10 @@ driver.experiments.create(
 )
 
 
-# 1C. TTP controller creates a run
+# 1D. TTP controller creates a run
 
 driver.runs.create(
+    collab_id="test_collaboration",
     project_id="test_project",
     expt_id="test_experiment",
     run_id="test_run",
@@ -77,46 +83,59 @@ driver.runs.create(
 )
 
 
-# 1D. Participants registers their servers' configurations
+# 1E. Participants registers their servers' configurations and roles
 
-driver.participants.create(
-    participant_id="test_participant_1",
+participant_resp_1 = driver.participants.create(
+    participant_id="worker_1",
+)
+
+participant_resp_2 = driver.participants.create(
+    participant_id="worker_2",
+)
+
+registration_task = driver.registrations
+
+    # Add and register worker_1 node
+registration_task.add_node(
     host='172.17.0.2',
     port=8020,
     f_port=5000,
     log_msgs=True,
     verbose=True
 )
+registration_task.list_nodes()
 
-driver.participants.create(
-    participant_id="test_participant_2",
+registration_task.create(
+    collab_id="test_collaboration",
+    project_id="test_project",
+    participant_id="worker_1",
+    role="host"
+)
+
+    # Add and register worker_2 node
+registration_task = driver.registrations
+registration_task.add_node(
     host='172.17.0.3',
     port=8020,
     f_port=5000,
     log_msgs=True,
     verbose=True
 )
+registration_task.list_nodes()
 
-
-# 1E. Participants registers their role in a specific project
-
-driver.registrations.create(
+registration_task.create(
+    collab_id="test_collaboration",
     project_id="test_project",
-    participant_id="test_participant_1",
+    participant_id="worker_2",
     role="guest"
-)
-
-driver.registrations.create(
-    project_id="test_project",
-    participant_id="test_participant_2",
-    role="host"
 )
 
 # 1F. Participants registers their tags for a specific project
 
 driver.tags.create(
+    collab_id="test_collaboration",
     project_id="test_project",
-    participant_id="test_participant_1",
+    participant_id="worker_1",
     train=[["train"]],
     evaluate=[["evaluate"]],
     predict = [["predict"]]
@@ -124,7 +143,7 @@ driver.tags.create(
 
 driver.tags.create(
     project_id="test_project",
-    participant_id="test_participant_2",
+    participant_id="worker_2",
     train=[["train"]],
     evaluate=[["evaluate"]],
     predict=[["predict"]]
@@ -137,19 +156,22 @@ driver.tags.create(
 
 # 2A. Perform multiple feature alignment to dynamically configure datasets and models for cross-grid compatibility
 
-driver.alignments.create(project_id="test_project")
+driver.alignments.create(collab_id='test_collaboration',
+                         project_id="test_project",
+                         verbose=False,
+                         log_msg=False)
 
 
 # 2B. Trigger training across the federated grid
 
 model_resp = driver.models.create(
+    collab_id="test_collaboration",
     project_id="test_project",
     expt_id="test_experiment",
-    run_id="test_run"
+    run_id="test_run",
+    log_msg=False,
+    verbose=False
 )
-
-
-# 2C. Trigger hyperparameter optimisation across the grid
 
 
 ################################################
@@ -159,17 +181,21 @@ model_resp = driver.models.create(
 # 3A. Perform validation(s) of combination(s)
 
 driver.validations.create(
+    collab_id='test_collaboration',
     project_id="test_project",
     expt_id="test_experiment",
-    run_id="test_run"
+    run_id="test_run",
+    log_msg=False,
+    verbose=False
 )
 
 
 # 3B. Perform prediction(s) of combination(s)
 
 driver.predictions.create(
+    collab_id="test_collaboration",
     tags={"test_project": [["predict"]]},
-    participant_id="test_participant_1",
+    participant_id="worker_1",
     project_id="test_project",
     expt_id="test_experiment",
     run_id="test_run"
