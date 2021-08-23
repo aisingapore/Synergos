@@ -74,9 +74,11 @@ class CollaborationTask(BaseTask):
             Catalogue specific metadata (dict)
         """
         self._catalogue_metadata.update({
-            'host': host,
-            'ports': {'main': port, 'ui': ui_port},
-            'secure': secure
+            'catalogue': {
+                'host': host,
+                'ports': {'main': port, 'ui': ui_port},
+                'secure': secure
+            }
         })
         return self._catalogue_metadata
 
@@ -108,20 +110,22 @@ class CollaborationTask(BaseTask):
             Logger specific metadata (dict)
         """
         self._logger_metadata.update({
-            'host': host,
-            'ports': {
+            'logs': {
+                'host': host,
+                'ports': {
 
-                # Primary ports for interaction
-                'main': port,    
-                'ui': ui_port,
+                    # Primary ports for interaction
+                    'main': port,    
+                    'ui': ui_port,
 
-                # Backend ports for partitioning incoming logs explicitly
-                'sysmetrics': sysmetrics_port,
-                'director': director_port,
-                'ttp': ttp_port,
-                'worker': worker_port
-            },
-            'secure': secure
+                    # Backend ports for partitioning incoming logs explicitly
+                    'sysmetrics': sysmetrics_port,
+                    'director': director_port,
+                    'ttp': ttp_port,
+                    'worker': worker_port
+                },
+                'secure': secure
+            }
         })
         return self._logger_metadata
 
@@ -145,9 +149,11 @@ class CollaborationTask(BaseTask):
             Meter specific metadata (dict)
         """
         self._meter_metadata.update({
-            'host': host, 
-            'ports': {'main': port, 'ui': ui_port},
-            'secure': secure
+            'meter': {
+                'host': host, 
+                'ports': {'main': port, 'ui': ui_port},
+                'secure': secure
+            }
         })
         return self._meter_metadata
 
@@ -171,9 +177,11 @@ class CollaborationTask(BaseTask):
             MLOps specific metadata (dict)
         """
         self._mlops_metadata.update({
-            'host': host,
-            'ports': {'main': port, 'ui': ui_port},
-            'secure': secure
+            'mlops': {
+                'host': host,
+                'ports': {'main': port, 'ui': ui_port},
+                'secure': secure
+            }
         })
         return self._mlops_metadata
 
@@ -197,9 +205,11 @@ class CollaborationTask(BaseTask):
             MQ specific metadata (dict)
         """
         self._mq_metadata.update({
-            'host': host, 
-            'ports': {'main': port, 'ui': ui_port},
-            'secure': secure
+            'mq': {
+                'host': host, 
+                'ports': {'main': port, 'ui': ui_port},
+                'secure': secure
+            }
         })
         return self._mq_metadata
 
@@ -226,14 +236,13 @@ class CollaborationTask(BaseTask):
             Compiled configurations (dict)
         """
         configurations = {
-            'catalogue': self._catalogue_metadata,
-            'logs': self._logger_metadata,
-            'meter': self._meter_metadata,
-            'mlops': self._mlops_metadata,
-            'mq': self._mq_metadata
+            **self._catalogue_metadata,
+            **self._logger_metadata,
+            **self._meter_metadata,
+            **self._mlops_metadata,
+            **self._mq_metadata
         }
 
-        print(configurations)
         return configurations
 
 
@@ -317,14 +326,10 @@ class CollaborationTask(BaseTask):
         # override the current values!
 
         # [Solution]
-        # Instead of implementing custom state alignment code, only accept
+        # Instead of implementing custom state alignment code, only load in
         # non-default (i.e. no empty declarations) updates.
 
-        configurations = {
-            k:v 
-            for k,v in self._compile_configurations().items() 
-            if v
-        }
+        configurations = self._compile_configurations()
         updated_parameters = {**configurations, **updates}
 
         update_resp = self._execute_operation(

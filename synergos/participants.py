@@ -60,11 +60,11 @@ class ParticipantTask(BaseTask):
     def create(
         self, 
         participant_id: str, 
-        category: List[str] = [],
-        summary: str = "",
-        phone: int = None,
+        category: List[str] = None,
+        summary: str = None,
+        phone: str = None,
         email: str = None,
-        socials: Dict[str, str] = {},
+        socials: Dict[str, str] = None,
         **kwargs
     ):
         """ Registers a participant in the federated grid
