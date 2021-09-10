@@ -140,7 +140,6 @@ driver.runs.create(
     criterion="NLLLoss"
 
 
-
 # 1E. Participants registers their servers' configurations
 
 driver.participants.create(participant_id="worker_1")
