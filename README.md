@@ -41,42 +41,95 @@ driver = Driver(host=host, port=port)
 # Phase 1: CONNECT - Submitting TTP & Participant metadata #
 ############################################################
 
-# 1A. TTP controller creates a project
+# 1A. Orchestrator creates a collaboration
+
+collab_task = driver.collaborations
+
+collab_task.configure_logger(
+    host="172.20.0.14", 
+    port=9000, 
+    sysmetrics_port=9100, 
+    director_port=9200, 
+    ttp_port=9300, 
+    worker_port=9400, 
+    ui_port=9000, 
+    secure=False
+)
+
+collab_task.configure_mlops( 
+    host="172.20.0.15", 
+    port=5500, 
+    ui_port=5500, 
+    secure=False
+)
+
+collab_task.configure_mq( 
+    host="172.20.0.16", 
+    port=5672, 
+    ui_port=15672, 
+    secure=False
+)
+
+collab_task.create('test_collaboration')
+
+
+# 1B. Orchestrator creates a project
 
 driver.projects.create(
+    collab_id="test_collaboration",
     project_id="test_project",
     action="classify",
     incentives={
         'tier_1': [],
         'tier_2': [],
-        'tier_3': []
     }
 )
 
 
-# 1B. TTP controller creates an experiment
+# 1C. Orchestrator creates an experiment
 
 driver.experiments.create(
+    collab_id="test_collaboration",
     project_id="test_project",
     expt_id="test_experiment",
-    model=[
+     model=[
+        # Input: N, C, Height, Width [N, 1, 28, 28]
         {
-            "activation": "sigmoid",
+            "activation": "relu",
             "is_input": True,
+            "l_type": "Conv2d",
+            "structure": {
+                "in_channels": 1, 
+                "out_channels": 4, # [N, 4, 28, 28]
+                "kernel_size": 3,
+                "stride": 1,
+                "padding": 1
+            }
+        },
+        {
+            "activation": None,
+            "is_input": False,
+            "l_type": "Flatten",
+            "structure": {}
+        },
+        {
+            "activation": "softmax",
+            "is_input": False,
             "l_type": "Linear",
             "structure": {
                 "bias": True,
-                "in_features": 15, 
-                "out_features": 1 
+                "in_features": 4 * 28 * 28,
+                "out_features": 3
             }
         }
     ]
 )
 
 
-# 1C. TTP controller creates a run
+# 1D. Orchestrator creates a run
 
 driver.runs.create(
+    collab_id="test_collaboration",
     project_id="test_project",
     expt_id="test_experiment",
     run_id="test_run",
@@ -85,63 +138,65 @@ driver.runs.create(
     base_lr=0.0005,
     max_lr=0.005,
     criterion="NLLLoss"
-)
 
 
-# 1D. Participants registers their servers' configurations
+# 1E. Participants registers their servers' configurations
 
-driver.participants.create(
-    participant_id="test_participant_1",
+driver.participants.create(participant_id="worker_1")
+
+driver.participants.create(participant_id="worker_2")
+
+
+# 1E. Participants registers their role in a specific project
+
+registration_task = driver.registrations
+
+# Add and register worker_1 node
+registration_task.add_node(
     host='172.17.0.2',
     port=8020,
     f_port=5000,
     log_msgs=True,
     verbose=True
 )
+registration_task.create(
+    collab_id="test_collaboration",
+    project_id="test_project",
+    participant_id="worker_1",
+    role="host"
+)
 
-driver.participants.create(
-    participant_id="test_participant_2",
+registration_task = driver.registrations
+registration_task.add_node(
     host='172.17.0.3',
     port=8020,
     f_port=5000,
     log_msgs=True,
     verbose=True
 )
-
-
-# 1E. Participants registers their role in a specific project
-
-driver.registrations.create(
+registration_task.create(
+    collab_id="test_collaboration",
     project_id="test_project",
-    participant_id="test_participant_1",
+    participant_id="worker_2",
     role="guest"
-)
-
-driver.registrations.create(
-    project_id="test_project",
-    participant_id="test_participant_2",
-    role="host"
 )
 
 
 # 1F. Participants registers their tags for a specific project
 
 driver.tags.create(
+    collab_id="test_collaboration",
     project_id="test_project",
-    participant_id="test_participant_1",
-    train=[
-        ["non_iid_1"], 
-        ["edge_test_missing_coecerable_vals"],
-        ["edge_test_misalign"],
-        ["edge_test_na_slices"]
-    ],
-    evaluate=[["iid_1"]]
+    participant_id="worker_1",
+    train=[["train"]],
+    evaluate=[["evaluate"]]
 )
 
 driver.tags.create(
+    collab_id="test_collaboration",
     project_id="test_project",
-    participant_id="test_participant_2",
-    train=[["non_iid_2"]]
+    participant_id="worker_2",
+    train=[["train"]]
 )
 
 
@@ -151,15 +206,23 @@ driver.tags.create(
 
 # 2A. Perform multiple feature alignment to dynamically configure datasets and models for cross-grid compatibility
 
-driver.alignments.create(project_id="test_project")
+driver.alignments.create(
+    collab_id='test_collaboration',
+    project_id="test_project",
+    verbose=False,
+    log_msg=False
+)
 
 
 # 2B. Trigger training across the federated grid
 
 model_resp = driver.models.create(
+    collab_id="test_collaboration",
     project_id="test_project",
     expt_id="test_experiment",
-    run_id="test_run"
+    run_id="test_run",
+    log_msg=False,
+    verbose=False
 )
 
 
@@ -173,17 +236,21 @@ model_resp = driver.models.create(
 # 3A. Perform validation(s) of combination(s)
 
 driver.validations.create(
+    collab_id='test_collaboration',
     project_id="test_project",
     expt_id="test_experiment",
-    run_id="test_run"
+    run_id="test_run",
+    log_msg=False,
+    verbose=False
 )
 
 
 # 3B. Perform prediction(s) of combination(s)
 
 driver.predictions.create(
-    tags={"test_project": [["iid_1"]]},
-    participant_id="test_participant_1",
+    collab_id="test_collaboration",
+    tags={"test_project": [["predict"]]},
+    participant_id="worker_1",
     project_id="test_project",
     expt_id="test_experiment",
     run_id="test_run"
