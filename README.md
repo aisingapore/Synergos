@@ -15,7 +15,7 @@ As Synergos is still under development, it has yet to be deployed on PyPi. Hence
 
 ```
 # Download source repository
-git clone https://gitlab.int.aisingapore.org/aims/federatedlearning/synergos.git
+git clone https://github.com/aimakerspace/Synergos.git
 git checkout dev
 cd ./synergos
 
